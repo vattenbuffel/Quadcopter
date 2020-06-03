@@ -1,0 +1,16 @@
+
+
+
+
+/*
+predict gyro
+update acc
+
+dQ
+Q_gyro
+R_acc
+P 
+
+
+
+*/
