@@ -3,9 +3,7 @@
 #include "MPU6050.h"
 #include "Wire.h"
 #include "orientation.h"
-
-
-
+#include <MatrixMath.h>
 
 
 MPU6050 accelgyro;
@@ -18,9 +16,10 @@ bool blinkState = false;
 
 void setup() {
   Serial.begin(115200);
+
+  /*  
   Wire.begin();
 
-  
   Serial.println("Initializing I2C devices...");
   accelgyro.initialize();
 
@@ -29,22 +28,23 @@ void setup() {
   accelgyro.setFullScaleGyroRange(0); //0 = +/- 250 degrees/sec | 1 = +/- 500 degrees/sec | 2 = +/- 1000 degrees/sec | 3 =  +/- 2000 degrees/sec
   accelgyro.setFullScaleAccelRange(0);  //0 = +/- 2g | 1 = +/- 4g | 2 = +/- 8g | 3 =  +/- 16g 
 
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);*/
   
 
-  /*orientation Orientation;
-  Orientation.omega[0] = 10;
-  Orientation.omega[1] = 0;
-  Orientation.omega[2] = -1; 
+  orientation Orientation;
   Orientation.t_cur = 0.5; 
   Orientation.t_prev = 0;
-  predict(&Orientation);
-  */
+  //predict(&Orientation);
+  update(&Orientation);
+
+
+
+  
 
 }
 
 void loop() {
-  
+  /*
   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
   Serial.print("Acc_x = ");
@@ -56,6 +56,6 @@ void loop() {
 
   blinkState = !blinkState;
   digitalWrite(LED_PIN, blinkState);
-  delay(250);
-  
+  delay(250);*/
+
 }

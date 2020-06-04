@@ -6,9 +6,9 @@ struct orientation{
                       {0,1,0,0},
                       {0,0,1,0},
                       {0,0,0,1}};
-    double R_acc[3][3] = {{1,2,3},
-                          {4,5,6},
-                          {7,8,9}};
+    double R_acc[3][3] = {{1,0,0},
+                          {0,1,0},
+                          {0,0,1}};
     double Q_gyr[3][3] = {{1,0,0},
                           {0,1,0},
                           {0,0,1}};;
@@ -16,20 +16,21 @@ struct orientation{
     double g_zero[3] = {0, 0, -9.81};
     double t_prev;
     double t_cur;
-    double* omega;
-    double* acc;
+    double omega[3] = {10, 0, -1};
+    double acc[3] = {1, 2, 3};
 };
 
 
 
-void print_P(double matrix[][5]);
-void print_F(double matrix[][4]);
-void print_Q_R(double matrix[3][3]);
-void print_dQ(double matrix[4][3][3]);
 void print_vector(double* vector, int length); 
-void dQ(double *q, double diff_q[4][3][3]);
+void dQdq(double *q, double diff_q[4][3][3]);
 void predict(orientation* ORIENTATION);
 void update(orientation* ORIENTATION);
+
+void print_matrix(double *A, int row, int col);
+void print_cube_matrix(double *A, int row, int col, int depth);
+void transpose_matrix(double *matrix, int rows, int cols, double* res);
+void print_matrix(double *matrix, int rows, int cols, int n_decimals);
 
 
 
