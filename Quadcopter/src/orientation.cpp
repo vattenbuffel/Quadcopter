@@ -11,9 +11,8 @@ void update_estimation(orientation* Orientation){
 
     if (pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) + pow(Orientation->acc[2], 2), 0.5)-0.2 <  9.82 && pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) +pow(Orientation->acc[2], 2), 0.5) + 0.2 > 9.82) update(Orientation);
     else {
-        Serial.println(F("Rejected these measurements: "));
-        print_vector(Orientation->acc, 3, 2);
-
+        //Serial.println(F("Rejected these measurements: "));
+        //print_vector(Orientation->acc, 3, 2);
     }
     
     quat_to_euler(Orientation);

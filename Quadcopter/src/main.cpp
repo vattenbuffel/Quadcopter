@@ -6,7 +6,6 @@
 
 /*
     TODO:
-    introduce measurement rejection in update step of accelerometer
     Optimise memory usage
     calculate the true offsets using the built in functions
 */
@@ -14,7 +13,7 @@
 int status;
 orientation Orientation;
 
-MPU9250 IMU(Wire,0x68);
+//MPU9250 IMU(Wire,0x68);
 
 
 void setup() {
@@ -32,9 +31,7 @@ void setup() {
 
     // start communication with IMU
     Serial.println(F("IMU BEGIN"));
-    Serial.print(F("Free memory "));
-    Serial.println(freeMemory()); 
-    status = IMU.begin();
+    //status = IMU.begin();
     Serial.println(F("IMU BEGUN")); 
 
     if (status < 0) {
@@ -45,7 +42,7 @@ void setup() {
         while(1) {}
     }
     // setting the accelerometer full scale range to +/-8G 
-    IMU.setAccelRange(MPU9250::ACCEL_RANGE_4G);
+    /*IMU.setAccelRange(MPU9250::ACCEL_RANGE_4G);
     // setting the gyroscope full scale range to +/-500 deg/s
     //IMU.setGyroRange(MPU9250::GYRO_RANGE_500DPS);
     // setting DLPF bandwidth to 20 Hz
@@ -54,25 +51,39 @@ void setup() {
     IMU.setSrd(19);
     IMU.setAccelCalZ(1.68,1); // bias of 1.68 m/s^2 and scale of 1
     IMU.setAccelCalY(0.751-0.09,1);
-    IMU.setAccelCalX(0.751-0.02,1);
-  
-    Serial.println();
-    Orientation.t_prev = millis();
-
-
-
+    IMU.setAccelCalX(0.751-0.02,1);*/
+    
     while(1){
+        Serial.println();
+        Orientation.t_prev = millis();
+        predict(&Orientation);
+        Serial.print(F("There are "));
+        Serial.print(freeMemory());
+        Serial.println(F(" bytes of ram left after predict."));
+        update(&Orientation);
+        Serial.print(F("There are "));
+        Serial.print(freeMemory());
+        Serial.println(F(" bytes of ram left after update."));
+        quat_to_euler(&Orientation);
+        Serial.print(F("There are "));
+        Serial.print(freeMemory());
+        Serial.println(F(" bytes of ram left after quat_to_euler."));
+        delay(100);
+    }
+
+
+    while(0){
         //Serial.println(F("Starting to update"));
-        IMU.readSensor();
+        //IMU.readSensor();
 
         //double x[4] = {0.9061,    0.1802,   -0.3753,   -0.0747};
 
         //Orientation.x = x;
         
 
-        Orientation.acc[0] = IMU.getAccelX_mss();
+        /*Orientation.acc[0] = IMU.getAccelX_mss();
         Orientation.acc[1] = IMU.getAccelY_mss();
-        Orientation.acc[2] = IMU.getAccelZ_mss();
+        Orientation.acc[2] = IMU.getAccelZ_mss();*/
         /*Serial.println();
         Serial.print(F("acc :"));
         Serial.print(Orientation.acc[0],3);
@@ -88,16 +99,16 @@ void setup() {
 
 
         
-        Orientation.gyr[0] = IMU.getGyroX_rads();
+        /*Orientation.gyr[0] = IMU.getGyroX_rads();
         Orientation.gyr[1] = IMU.getGyroY_rads();
-        Orientation.gyr[2] = IMU.getGyroZ_rads();
+        Orientation.gyr[2] = IMU.getGyroZ_rads();*/
         //Orientation.t_cur = Orientation.t_prev + 500;  
-        Orientation.t_cur = millis();  
+        //Orientation.t_cur = millis();  
 
         
         //Serial.print(F("Free memory in setup "));
         //Serial.println(freeMemory());
-        update_estimation(&Orientation);
+        //update_estimation(&Orientation);
         
 
         /*Serial.print(F("gyr:"));
@@ -111,7 +122,7 @@ void setup() {
         //Serial.print("roll:" + String(Orientation.euler_angles[0]) + "   ");
         //Serial.print("pitch:" + String(Orientation.euler_angles[1]) + "   ");
         //Serial.println("yaw:" + String(Orientation.euler_angles[2]));
-        Serial.print(F("roll:"));
+        /*Serial.print(F("roll:"));
         Serial.print(Orientation.euler_angles[0],2);
         Serial.print(F("\t"));
 
@@ -121,7 +132,7 @@ void setup() {
         
         Serial.print(F("yaw:"));
         Serial.print(Orientation.euler_angles[2],2);
-        Serial.println(F("\t"));
+        Serial.println(F("\t"));*/
         //while(1){}
         delay(100);
         //Serial.println(F("Done updating. Time to start again"));
