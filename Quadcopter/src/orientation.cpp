@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <MatrixMath.h>
 #include "MemoryFree.h"
+#include <math.h>
 
 
 
@@ -132,11 +133,6 @@ void predict(orientation* Orientation){
         }   
     }
     Matrix.Add((double*)__P, (double*)__Q, 4, 4, (double*)Orientation->P);
-    
-    
-    
-
-
 }
 
 // The update step of the EKF using the accelerometer
@@ -164,41 +160,7 @@ void update(orientation* Orientation){
     // Calculate dhx
     double dhx[3][4];
     calc_dhx(Orientation, dhx);
-    /*
-    double dQ[4][3][3];
-    dQdq(Orientation->x, dQ);
-
-    double _dQ_transpose[3][3];
-    double __dQ_transpose[3][3];
-    double ___dQ_transpose[3][3];
-    double ____dQ_transpose[3][3];
-    for (int i = 0; i < 3; i++){
-        for (int j = 0; j < 3; j++){
-            _dQ_transpose[i][j] = dQ[0][j][i];
-            __dQ_transpose[i][j] = dQ[1][j][i];
-            ___dQ_transpose[i][j] = dQ[2][j][i];
-            ____dQ_transpose[i][j] = dQ[3][j][i];
-        }
-    }
-
-    double dhx[3][4];
-    double _dhx[3];
-    double __dhx[3];
-    double ___dhx[3];
-    double ____dhx[3];
-    Matrix.Multiply((mtx_type*)_dQ_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)_dhx);
-    Matrix.Multiply((mtx_type*)__dQ_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)__dhx);
-    Matrix.Multiply((mtx_type*)___dQ_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)___dhx);
-    Matrix.Multiply((mtx_type*)____dQ_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)____dhx);
-	
-    for (int i = 0; i < 3; i++){
-        dhx[i][0] = _dhx[i];
-        dhx[i][1] = __dhx[i];
-        dhx[i][2] = ___dhx[i];
-        dhx[i][3] = ____dhx[i];
-    }
-    */
-    //Serial.println(F("dhx="));
+    
     
     // Calculate S
     double S[3][3];
@@ -212,15 +174,16 @@ void update(orientation* Orientation){
     calc_K(Orientation,  K, S, dhx);
     //Serial.println(F("K="));
     //print_matrix((double*)K, 4, 3, 5);
+    //Passed this
     
 
     // Calculate estimated x
     estimate_x(Orientation, hx, K);
-    //Serial.println(F("x_new="));
+    /*//Serial.println(F("x_new="));
     //print_vector((double*)Orientation->x, 4, 5);
 
     // Calculate estimated P
-    estimate_P(Orientation, K, S);
+    estimate_P(Orientation, K, S);*/
     //Serial.println(F("P_est="));
     //print_matrix((double*)Orientation->P, 4, 4, 10);
     
@@ -228,7 +191,6 @@ void update(orientation* Orientation){
     //print_vector((double*)Orientation->x, 4, 10);
     
     normalize_x_p(Orientation);
-    
 }
 
 // The only reason this is it's own function is to save memory
@@ -257,8 +219,12 @@ void estimate_x(orientation* Orientation, double hx[3], double K[3][3]){
     Matrix.Multiply((double *)K, _x, 4, 3, 1, __x);
     Matrix.Add(old_x, __x, 4, 1, new_x);
 
+    // Make sure the estimated q isnt nan
+    for (int i = 0; i < 4; i++){
+        if (isnan(new_x[i]))
+            return;
+    }
     Matrix.Copy(new_x, 4, 1, Orientation->x);
-
 }
 
 // The only reason this is it's own function is to save memory
@@ -342,13 +308,10 @@ void quat_to_euler(orientation* Orientation){
     double q3 = Orientation->x[3];
     double roll, pitch, yaw;
 
-    double xzpwy = q1*q3 + q0*q2;
+    double xzpwy = q1*q2 + q0*q2;
 
-    // If xzpwy = 0.5 then there's a singularity which needs to be handled. Instead of xzpwy = 0.5 use: 0.5 - error_margin < xzpwy < 0.5 + error_margin
-    double error_margin = 0.1;
-    boolean north_pole = 0.5 - error_margin < xzpwy &&  xzpwy < 0.5 + error_margin;
-    // If xzpwy = -0.5 then there's a singularity which needs to be handled. Instead of xzpwy = -0.5 use: -0.5 - error_margin < xzpwy < -0.5 + error_margin
-    boolean south_pole = -0.5 - error_margin < xzpwy &&  xzpwy < -0.5 + error_margin;
+    boolean north_pole = xzpwy > 0.5;
+    boolean south_pole = xzpwy < -0.5;
     if (north_pole) roll = 2*atan2(q1, q0);
     else if (south_pole) roll = 2*atan2(q1, q0);
     else roll = atan2(-2*(q0*q2 - q0*q3), 1-2*(q2*q2 + q3*q3));
@@ -357,7 +320,7 @@ void quat_to_euler(orientation* Orientation){
     pitch = asin(2*xzpwy);
 
     if (!(north_pole || south_pole)) yaw = atan2(2*(q2*q3 - q0*q1), 1-2*(q1*q1 + q2*q2));
-    else if (south_pole) yaw = 2*atan2(q0,q3); // I This should maybe be negative.
+    else if (south_pole) yaw = -2*atan2(q0,q3); // I This should maybe be negative.
     else yaw = 0;
 
 
@@ -366,7 +329,7 @@ void quat_to_euler(orientation* Orientation){
     //double temp_roll = roll;
     yaw = roll;
     roll = pitch;
-    pitch = temp_yaw;
+    pitch = -temp_yaw;
     
 
     double angles[3] = {roll*180.0/PI, pitch*180.0/PI, yaw*180.0/PI};

@@ -20,8 +20,8 @@ struct orientation{
     double g_zero[3] = {0, 0, -9.82};
     double t_prev;
     double t_cur;
-    double gyr[3] = {10, 0, -1};
-    double acc[3] = {1, 2, 3};
+    double gyr[3] = {10, -2, 1};
+    double acc[3] = {0, 0, -9.82};
     double euler_angles[3];
 };
 
