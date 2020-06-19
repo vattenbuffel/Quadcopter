@@ -10,12 +10,12 @@
 void update_estimation(orientation* Orientation){
     predict(Orientation);
 
-    if (pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) + pow(Orientation->acc[2], 2), 0.5)-0.2 <  9.82 && pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) +pow(Orientation->acc[2], 2), 0.5) + 0.2 > 9.82) update(Orientation);
-    else {
+    //if (pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) + pow(Orientation->acc[2], 2), 0.5)-0.2 <  9.82 && pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) +pow(Orientation->acc[2], 2), 0.5) + 0.2 > 9.82) update(Orientation);
+    /*else {
         //Serial.println(F("Rejected these measurements: "));
         //print_vector(Orientation->acc, 3, 2);
     }
-    
+    */
     quat_to_euler(Orientation);
     Orientation->t_prev = Orientation->t_cur;
 }
@@ -23,20 +23,20 @@ void update_estimation(orientation* Orientation){
 void predict(orientation* Orientation){
     //Serial.print(F("Free memory in prediction "));
     //Serial.println(freeMemory()); 
-    double T = (Orientation->t_cur - Orientation->t_prev)/1000; // Time that has passed since last update in s.
-    double omega[3] = {Orientation->gyr[0], Orientation->gyr[1], Orientation->gyr[2]};
+    float T = (Orientation->t_cur - Orientation->t_prev)/1000; // Time that has passed since last update in s.
+    float omega[3] = {Orientation->gyr[0], Orientation->gyr[1], Orientation->gyr[2]};
 
     // Prediciton of x
-    double F[4][4] = {{1, -0.5*T*omega[0], -0.5*T*omega[1], -0.5*T*omega[2]},
+    float F[4][4] = {{1, -0.5*T*omega[0], -0.5*T*omega[1], -0.5*T*omega[2]},
                     {0.5*T*omega[0], 1, 0.5*T*omega[2], -0.5*T*omega[1]},
                     {0.5*T*omega[1], -0.5*T*omega[2], 1, 0.5*T*omega[0]},
                     {0.5*T*omega[2], 0.5*T*omega[1], -0.5*T*omega[0], 1}};
     
     //Serial.println("F");
-    //print_matrix((double*) F, 4, 4);
+    //print_matrix((float*) F, 4, 4);
 
-    double x[4] = {Orientation->x[0], Orientation->x[1], Orientation->x[2], Orientation->x[3]};
-    double _x[4] = {0,0,0,0};
+    float x[4] = {Orientation->x[0], Orientation->x[1], Orientation->x[2], Orientation->x[3]};
+    float _x[4] = {0,0,0,0};
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < 4; j++){
             _x[i] += F[i][j]*x[j];
@@ -51,16 +51,16 @@ void predict(orientation* Orientation){
 
     // Prediction of P   
     //F*P*F.'
-    double F_transpose[4][4];
+    float F_transpose[4][4];
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < 4; j++){
             F_transpose[i][j] = F[j][i];
         }    
     }
 
-    double P[4][4];
-    double _P[4][4];
-    double __P[4][4];
+    float P[4][4];
+    float _P[4][4];
+    float __P[4][4];
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < 4; j++){
             P[i][j] = Orientation->P[i][j];
@@ -88,21 +88,21 @@ void predict(orientation* Orientation){
     //G*Q*G.'
     //Serial.print(F("Free memory in G*Q*G.' "));
     //Serial.println(freeMemory());  
-    double G[4][3] = {{-x[1]*T/2.0, -x[2]*T/2.0, -x[3]*T/2.0},
+    float G[4][3] = {{-x[1]*T/2.0, -x[2]*T/2.0, -x[3]*T/2.0},
                       {x[0]*T/2.0, -x[3]*T/2.0, x[2]*T/2.0},
                       {x[3]*T/2.0, x[0]*T/2.0, -x[1]*T/2.0},
                       {-x[2]*T/2.0, x[1]*T/2.0, x[0]*T/2.0}};
     
-    double G_transpose[3][4];
+    float G_transpose[3][4];
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 4; j++){
             G_transpose[i][j] = G[j][i];
         }    
     }
 
-    double Q[3][3];
-    double _Q[3][4];
-    double __Q[4][4];
+    float Q[3][3];
+    float _Q[3][4];
+    float __Q[4][4];
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
             Q[i][j] = Orientation->Q_gyr[i][j];
@@ -132,7 +132,7 @@ void predict(orientation* Orientation){
             } 
         }   
     }
-    Matrix.Add((double*)__P, (double*)__Q, 4, 4, (double*)Orientation->P);
+    Matrix.Add((float*)__P, (float*)__Q, 4, 4, (float*)Orientation->P);
 }
 
 // The update step of the EKF using the accelerometer
@@ -140,83 +140,83 @@ void update(orientation* Orientation){
     //Serial.print(F("Free memory in begining of update "));
     //Serial.println(freeMemory());
     // local copies of parameters
-    double q0=Orientation->x[0];
-    double q1=Orientation->x[1];
-    double q2=Orientation->x[2];
-    double q3=Orientation->x[3];
+    float q0=Orientation->x[0];
+    float q1=Orientation->x[1];
+    float q2=Orientation->x[2];
+    float q3=Orientation->x[3];
    
-    double Q[3][3] = {{2*(q0*q0+q1*q1) - 1,  2*(q1*q2-q0*q3),     2*(q1*q3+q0*q2)},
+    float Q[3][3] = {{2*(q0*q0+q1*q1) - 1,  2*(q1*q2-q0*q3),     2*(q1*q3+q0*q2)},
                       {2*(q1*q2+q0*q3) ,      2*(q0*q0+q2*q2) - 1, 2*(q2*q3-q0*q1)},
                       {2*(q1*q3-q0*q2) ,      2*(q2*q3+q0*q1) ,    2*(q0*q0+q3*q3) - 1}};
 
     // Calculate hx
-    double Q_transpose[3][3];
-    transpose_matrix((double*) Q, 3, 3, (double*)Q_transpose);
-    double hx[3];
+    float Q_transpose[3][3];
+    transpose_matrix((float*) Q, 3, 3, (float*)Q_transpose);
+    float hx[3];
     Matrix.Multiply((mtx_type*)Q_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)hx);
     //Serial.println(F("hx="));
     //print_vector(hx, 3, 5);
 	
     // Calculate dhx
-    double dhx[3][4];
+    float dhx[3][4];
     calc_dhx(Orientation, dhx);
     
     
     // Calculate S
-    double S[3][3];
+    float S[3][3];
     calc_S(Orientation, S, dhx);
     //Serial.println(F("S="));
-    //print_matrix((double*)S, 3, 3, 5);
+    //print_matrix((float*)S, 3, 3, 5);
     
 
     // Calculate K
-    double K[4][3];
+    float K[4][3];
     calc_K(Orientation,  K, S, dhx);
     //Serial.println(F("K="));
-    //print_matrix((double*)K, 4, 3, 5);
+    //print_matrix((float*)K, 4, 3, 5);
     //Passed this
     
 
     // Calculate estimated x
     estimate_x(Orientation, hx, K);
-    /*//Serial.println(F("x_new="));
-    //print_vector((double*)Orientation->x, 4, 5);
+    //Serial.println(F("x_new="));
+    //print_vector((float*)Orientation->x, 4, 5);
 
     // Calculate estimated P
-    estimate_P(Orientation, K, S);*/
+    estimate_P(Orientation, K, S);
     //Serial.println(F("P_est="));
-    //print_matrix((double*)Orientation->P, 4, 4, 10);
+    //print_matrix((float*)Orientation->P, 4, 4, 10);
     
     //Serial.println(F("x_est="));
-    //print_vector((double*)Orientation->x, 4, 10);
+    //print_vector((float*)Orientation->x, 4, 10);
     
     normalize_x_p(Orientation);
 }
 
 // The only reason this is it's own function is to save memory
-void estimate_P(orientation* Orientation, double K[4][3], double S[3][3]){
-    double old_P[4][4];
+void estimate_P(orientation* Orientation, float K[4][3], float S[3][3]){
+    float old_P[4][4];
     Matrix.Copy((mtx_type*)Orientation->P, 4, 4, (mtx_type*)old_P);
 
-    double _P[3][4];
-    double __P[4][4];
-    double K_transpose[3][4];
-    transpose_matrix((double*)K, 4, 3, (double*)K_transpose);
-    Matrix.Multiply((double *)S, (double*)K_transpose, 3, 3, 4, (double*)_P);
-    Matrix.Multiply((double *)K, (double*)_P, 4, 3, 4, (double*)__P);
-    Matrix.Subtract((double*)old_P, (double*)__P, 4, 4, (double*)Orientation->P);
+    float _P[3][4];
+    float __P[4][4];
+    float K_transpose[3][4];
+    transpose_matrix((float*)K, 4, 3, (float*)K_transpose);
+    Matrix.Multiply((float *)S, (float*)K_transpose, 3, 3, 4, (float*)_P);
+    Matrix.Multiply((float *)K, (float*)_P, 4, 3, 4, (float*)__P);
+    Matrix.Subtract((float*)old_P, (float*)__P, 4, 4, (float*)Orientation->P);
 }
 
 // The only reason this is it's own function is to save memory
-void estimate_x(orientation* Orientation, double hx[3], double K[3][3]){
-    double old_x[4];
+void estimate_x(orientation* Orientation, float hx[3], float K[3][3]){
+    float old_x[4];
     Matrix.Copy((mtx_type*)Orientation->x, 1, 4, (mtx_type*)old_x);
 
-    double new_x[4];
-    double _x[3];
-    double __x[4];
+    float new_x[4];
+    float _x[3];
+    float __x[4];
     Matrix.Subtract(Orientation->acc, hx, 3, 1, _x);
-    Matrix.Multiply((double *)K, _x, 4, 3, 1, __x);
+    Matrix.Multiply((float *)K, _x, 4, 3, 1, __x);
     Matrix.Add(old_x, __x, 4, 1, new_x);
 
     // Make sure the estimated q isnt nan
@@ -228,40 +228,40 @@ void estimate_x(orientation* Orientation, double hx[3], double K[3][3]){
 }
 
 // The only reason this is it's own function is to save memory
-void calc_K(orientation* Orientation, double K[3][3], double S[4][3], double dhx[3][4]){
-    double S_inv[3][3];
+void calc_K(orientation* Orientation, float K[3][3], float S[4][3], float dhx[3][4]){
+    float S_inv[3][3];
     Matrix.Copy((mtx_type*)S, 3, 3, (mtx_type*)S_inv);
     Matrix.Invert((mtx_type*)S_inv, 3);
 
-    double dhx_transpose[4][3];
-    transpose_matrix((double*)dhx, 3, 4, (double*)dhx_transpose);
+    float dhx_transpose[4][3];
+    transpose_matrix((float*)dhx, 3, 4, (float*)dhx_transpose);
 
-    double _K[4][3];
+    float _K[4][3];
     Matrix.Multiply((mtx_type*)dhx_transpose, (mtx_type*)S_inv, 4, 3, 3, (mtx_type*)_K);
     Matrix.Multiply((mtx_type*)Orientation->P, (mtx_type*)_K, 4, 4, 3, (mtx_type*)K);
 }
 
 // The only reason this is it's own function is to save memory
-void calc_S(orientation* Orientation, double S[3][3], double dhx[3][4]){
-    double dhx_transpose[4][3];
-    transpose_matrix((double*)dhx, 3, 4, (double*)dhx_transpose);
+void calc_S(orientation* Orientation, float S[3][3], float dhx[3][4]){
+    float dhx_transpose[4][3];
+    transpose_matrix((float*)dhx, 3, 4, (float*)dhx_transpose);
 
-    double _S[4][3];
-    double __S[3][3];
+    float _S[4][3];
+    float __S[3][3];
     Matrix.Multiply((mtx_type*)Orientation->P, (mtx_type*)dhx_transpose, 4, 4, 3, (mtx_type*)_S);
     Matrix.Multiply((mtx_type*)dhx, (mtx_type*)_S, 3, 4, 3, (mtx_type*)__S);
     Matrix.Add((mtx_type*) __S, (mtx_type*) Orientation->R_acc, 3, 3, (mtx_type*) S);
 }
 
 // The only reason this is it's own function is to save memory
-void calc_dhx(orientation* Orientation, double dhx[3][4]){
-     double dQ[4][3][3];
+void calc_dhx(orientation* Orientation, float dhx[3][4]){
+     float dQ[4][3][3];
     dQdq(Orientation->x, dQ);
 
-    double _dQ_transpose[3][3];
-    double __dQ_transpose[3][3];
-    double ___dQ_transpose[3][3];
-    double ____dQ_transpose[3][3];
+    float _dQ_transpose[3][3];
+    float __dQ_transpose[3][3];
+    float ___dQ_transpose[3][3];
+    float ____dQ_transpose[3][3];
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
             _dQ_transpose[i][j] = dQ[0][j][i];
@@ -271,10 +271,10 @@ void calc_dhx(orientation* Orientation, double dhx[3][4]){
         }
     }
 
-    double _dhx[3];
-    double __dhx[3];
-    double ___dhx[3];
-    double ____dhx[3];
+    float _dhx[3];
+    float __dhx[3];
+    float ___dhx[3];
+    float ____dhx[3];
     Matrix.Multiply((mtx_type*)_dQ_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)_dhx);
     Matrix.Multiply((mtx_type*)__dQ_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)__dhx);
     Matrix.Multiply((mtx_type*)___dQ_transpose, (mtx_type*)Orientation->g_zero, 3, 3, 1, (mtx_type*)___dhx);
@@ -289,11 +289,11 @@ void calc_dhx(orientation* Orientation, double dhx[3][4]){
 }
 
 void normalize_x_p(orientation* Orientation){
-    double norm;
-    double* pnorm = &norm;
-    Matrix.Multiply((double*)Orientation->x, (double*)Orientation->x, 1,4,1, pnorm);
+    float norm;
+    float* pnorm = &norm;
+    Matrix.Multiply((float*)Orientation->x, (float*)Orientation->x, 1,4,1, pnorm);
     norm = 1/pow(norm, 0.5);
-    Matrix.Scale((double*)Orientation->x, 4, 1, norm);
+    Matrix.Scale((float*)Orientation->x, 4, 1, norm);
 }
 
 /* 
@@ -302,66 +302,69 @@ void normalize_x_p(orientation* Orientation){
     Handles the singularities at +-pi/2.
 */
 void quat_to_euler(orientation* Orientation){
-    double q0 = Orientation->x[0];
-    double q1 = Orientation->x[1];
-    double q2 = Orientation->x[2];
-    double q3 = Orientation->x[3];
-    double roll, pitch, yaw;
+    float qw = Orientation->x[0];
+    float qx = Orientation->x[1];
+    float qy = Orientation->x[2];
+    float qz = Orientation->x[3];
 
-    double xzpwy = q1*q2 + q0*q2;
+    float test = qx*qy + qz*qw;
+    float sqx = qx*qx;
+    float sqy = qy*qy;
+    float sqz = qz*qz;
 
-    boolean north_pole = xzpwy > 0.5;
-    boolean south_pole = xzpwy < -0.5;
-    if (north_pole) roll = 2*atan2(q1, q0);
-    else if (south_pole) roll = 2*atan2(q1, q0);
-    else roll = atan2(-2*(q0*q2 - q0*q3), 1-2*(q2*q2 + q3*q3));
-    roll = fmod(roll, 2*PI);
-
-    pitch = asin(2*xzpwy);
-
-    if (!(north_pole || south_pole)) yaw = atan2(2*(q2*q3 - q0*q1), 1-2*(q1*q1 + q2*q2));
-    else if (south_pole) yaw = -2*atan2(q0,q3); // I This should maybe be negative.
-    else yaw = 0;
+    float heading = atan2(2*qy*qw - 2*qx*qz, 1 - 2*sqy - 2*sqz);
+    float attitude = asin(2*test);
+    float bank = atan2(2*qx*qw - 2*qy*qz, 1 - 2*sqx - 2*sqz);
 
 
-    // Somewhere I fucked up.
-    double temp_yaw = yaw;
-    //double temp_roll = roll;
-    yaw = roll;
-    roll = pitch;
-    pitch = -temp_yaw;
+    if (test > 0.5) {
+       heading = 2*atan2(qx, qw);
+       attitude = PI/2;
+       bank = 0;
+    }
+
+    if (test < -0.5){
+       heading = -2*atan2(qx, qw);
+       attitude = -PI/2;
+       bank = 0;
+    }
+
+
+    /*float x = bank;
+    float y = heading;
+    float z = attitude;
+    //noa_eul_angles = [y x -z];*/
     
-
-    double angles[3] = {roll*180.0/PI, pitch*180.0/PI, yaw*180.0/PI};
+    float angles[3] = {heading*180.0/PI, bank*180.0/PI, -attitude*180.0/PI};
     Orientation->euler_angles[0] = angles[0];
     Orientation->euler_angles[1] = angles[1];
     Orientation->euler_angles[2] = angles[2];
     
 }
 
-void dQdq(double *q, double dQdq[4][3][3]){
-    double vals[] = {2*q[0], -q[3], q[2], q[3], 2*q[0], -q[1], -q[2], q[1], 2*q[0]};
+void dQdq(float *q, float dQdq[4][3][3]){
+    float vals[] = {2*q[0], -q[3], q[2], q[3], 2*q[0], -q[1], -q[2], q[1], 2*q[0]};
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
             dQdq[0][i][j] = 2*vals[i*3+j];
         }   
     }
     
-    double vals2[] = {2*q[1], q[2], q[3], q[2], 0, -q[0], q[3], q[0], 0};
+    float vals2[] = {2*q[1], q[2], q[3], q[2], 0, -q[0], q[3], q[0], 0};
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
             dQdq[1][i][j] = 2*vals2[i*3+j];
         }   
     }
 
-    double vals3[] = {0, q[1], q[0], q[1], 2*q[2], q[3], -q[0], q[3], 0};
+    float vals3[] = {0, q[1], q[0], q[1], 2*q[2], q[3], -q[0], q[3], 0};
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
             dQdq[2][i][j] = 2*vals3[i*3+j];
         }   
     }
 
-    double vals4[] = {0, -q[0], q[1], q[0], 0, q[2], q[1], q[2], 2*q[3]};
+    float vals4[] = {0, -q[0], q[1], q[0], 0, q[2], q[1], q[2], 2*q[3]};
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
             dQdq[3][i][j] = 2*vals4[i*3+j];
@@ -369,7 +372,7 @@ void dQdq(double *q, double dQdq[4][3][3]){
     }
 }
 
-void transpose_matrix(double *matrix, int rows, int cols, double* res){
+void transpose_matrix(float *matrix, int rows, int cols, float* res){
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
             res[j*rows + i] = matrix[i*cols + j];
@@ -377,7 +380,7 @@ void transpose_matrix(double *matrix, int rows, int cols, double* res){
     }
 }
 
-void print_matrix(double *matrix, int rows, int cols){
+void print_matrix(float *matrix, int rows, int cols){
     Serial.print(F("["));
     for (int i = 0; i < rows; i++){
         if (!i==0)Serial.print(F(" "));
@@ -390,7 +393,7 @@ void print_matrix(double *matrix, int rows, int cols){
     }
 }
 
-void print_matrix(double *matrix, int rows, int cols, int n_decimals){
+void print_matrix(float *matrix, int rows, int cols, int n_decimals){
     Serial.print(F("["));
     for (int i = 0; i < rows; i++){
         if (!i==0)Serial.print(F(" "));
@@ -403,7 +406,7 @@ void print_matrix(double *matrix, int rows, int cols, int n_decimals){
     }
 }
 
-void print_cube_matrix(double *matrix, int rows, int cols, int depth){
+void print_cube_matrix(float *matrix, int rows, int cols, int depth){
     for (int k = 0; k < depth; k++){
         Serial.print(F("["));
         for (int i = 0; i < rows; i++){
@@ -418,7 +421,7 @@ void print_cube_matrix(double *matrix, int rows, int cols, int depth){
     }
 }
 
-void print_vector(double* vector, int length, int n_decimals){
+void print_vector(float* vector, int length, int n_decimals){
     Serial.print(F("["));
     Serial.println(vector[0], n_decimals);
     for (int i = 1; i < length-1; i++){

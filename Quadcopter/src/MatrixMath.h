@@ -12,7 +12,7 @@
 #ifndef MatrixMath_h
 #define MatrixMath_h
 
-#define mtx_type	double
+#define mtx_type	float
 
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "Arduino.h"
