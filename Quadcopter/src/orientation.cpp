@@ -10,7 +10,7 @@
 void update_estimation(orientation* Orientation){
     predict(Orientation);
 
-    //if (pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) + pow(Orientation->acc[2], 2), 0.5)-0.2 <  9.82 && pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) +pow(Orientation->acc[2], 2), 0.5) + 0.2 > 9.82) update(Orientation);
+    if (pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) + pow(Orientation->acc[2], 2), 0.5)-0.2 <  9.82 && pow(pow(Orientation->acc[0], 2) + pow(Orientation->acc[1], 2) +pow(Orientation->acc[2], 2), 0.5) + 0.2 > 9.82) update(Orientation);
     /*else {
         //Serial.println(F("Rejected these measurements: "));
         //print_vector(Orientation->acc, 3, 2);
@@ -190,7 +190,7 @@ void update(orientation* Orientation){
     //Serial.println(F("x_est="));
     //print_vector((float*)Orientation->x, 4, 10);
     
-    normalize_x_p(Orientation);
+    /*normalize_x_p(Orientation);*/
 }
 
 // The only reason this is it's own function is to save memory
@@ -204,7 +204,7 @@ void estimate_P(orientation* Orientation, float K[4][3], float S[3][3]){
     transpose_matrix((float*)K, 4, 3, (float*)K_transpose);
     Matrix.Multiply((float *)S, (float*)K_transpose, 3, 3, 4, (float*)_P);
     Matrix.Multiply((float *)K, (float*)_P, 4, 3, 4, (float*)__P);
-    Matrix.Subtract((float*)old_P, (float*)__P, 4, 4, (float*)Orientation->P);
+    //Matrix.Subtract((float*)old_P, (float*)__P, 4, 4, (float*)Orientation->P);
 }
 
 // The only reason this is it's own function is to save memory
