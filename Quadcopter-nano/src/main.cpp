@@ -63,7 +63,18 @@ bool updated = false;
 void MPU9250Setup();
 void updateGyroReading();
 void timerInterruptSetup();
+
+
+float X = 0;
+float Y = 0;
+float Z = 0;
+void complementary_filter();
 void compensate();
+#define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
+#define radToDeg(angleInRadians) ((angleInRadians) * 180.0 / M_PI)
+
+//long t_cur = millis();
+long t_prev = millis();
 
 using namespace TWI;
 
@@ -75,22 +86,65 @@ void setup() {
 }
 
 void loop(){
-    if(updated){
-        compensate();
-        /*Serial.print("GYROX: ");
-        Serial.print(gyroX/GYRO_SENS);
-        Serial.print(" GYROY: ");
-        Serial.print(gyroY/GYRO_SENS);
-        Serial.print(" GYROZ: ");
-        Serial.print(gyroZ/GYRO_SENS);*/
-        Serial.print(" ACCELX: ");
-        Serial.print(accelX/ACCEL_SENS);
-        Serial.print(" ACCELY: ");
-        Serial.print(accelY/ACCEL_SENS);
-        Serial.print(" ACCELZ: ");
-        Serial.println(accelZ/ACCEL_SENS);
-        updated = false;
-    }
+  if(updated){
+    compensate();
+    /*Serial.print("GYROX: ");
+    Serial.print(gyroX/GYRO_SENS);
+    Serial.print(" GYROY: ");
+    Serial.print(gyroY/GYRO_SENS);
+    Serial.print(" GYROZ: ");
+    Serial.println(gyroZ/GYRO_SENS);
+    Serial.print(" ACCELX: ");
+    Serial.print(accelX/ACCEL_SENS);
+    Serial.print(" ACCELY: ");
+    Serial.print(accelY/ACCEL_SENS);
+    Serial.print(" ACCELZ: ");
+    Serial.println(accelZ/ACCEL_SENS);*/
+
+    complementary_filter();
+    Serial.print("X :");
+    Serial.print(radToDeg(X));
+    Serial.print("  Y :");
+    Serial.print(radToDeg(Y));
+    Serial.print("  Z :");
+    Serial.println(radToDeg(Z));
+    updated = false;
+  }
+}
+
+
+void complementary_filter(){
+  float h = 0.025;
+  float alpha = 0.1;
+  float gamma = alpha/(h+alpha);
+
+  // There really should be a lock or something on these
+  float gyrX = degToRad(gyroX/GYRO_SENS*2)*h;
+  float gyrY = degToRad(gyroY/GYRO_SENS*2)*h;
+  float gyrZ = degToRad(gyroZ/GYRO_SENS*2)*h;
+
+  // Add previous estimated angles to gyro estimated angle change and multiply with gamma
+  gyrX = (gyrX + X) * gamma;
+  gyrY = (gyrY + Y) * gamma;
+  gyrZ = (gyrZ + Z) * gamma;
+
+  //Convert acc to rad
+  float g = -9.81;
+  float accX = accelX*g;///ACCEL_SENS
+  float accY = accelY*g;////ACCEL_SENS
+  float accZ = accelZ*g;///ACCEL_SENS
+  
+
+  float phi = atan2( accY, accZ);
+  float theta = atan2( -accX, sqrt( pow(accY, 2) + pow(accZ, 2) ));
+  
+  phi = phi*(1-gamma);
+  theta = theta*(1-gamma);
+
+  // Add the estimations of the gyro and accelerometer
+  X = phi + gyrX;
+  Y = theta + gyrY;
+  Z = gyrZ;
 }
 
 void compensate(){
@@ -102,6 +156,15 @@ void compensate(){
   accelX = accelY*-1;
   accelY = tmp;
   accelZ = accelZ*-1;
+
+  
+  gyroX = gyroX - 0.7*GYRO_SENS;
+  gyroZ = gyroZ + 0.4*GYRO_SENS;
+
+  tmp = gyroX;
+  gyroX = gyroY*1;
+  gyroY = -tmp;
+  gyroZ = gyroZ*1;
 }
 
 ISR(TIMER1_COMPA_vect){
