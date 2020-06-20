@@ -1,72 +1,80 @@
-#include <SparkFunMPU9250-DMP.h>
+#include <arduino.h>
 
-#define SerialPort Serial
+#include <SPI.h>
+#include <MPU9250.h>
 
-MPU9250_DMP imu;
+#define SPI_CLOCK 8000000  // 8MHz clock works.
 
-void printIMUData(void);
+#define SS_PIN   10 
+#define INT_PIN  3
+#define LED      13
 
-void setup() 
-{
-  SerialPort.begin(115200);
+#define WAITFORINPUT(){            \
+	while(!Serial.available()){};  \
+	while(Serial.available()){     \
+		Serial.read();             \
+	};                             \
+}                                  \
 
-  // Call imu.begin() to verify communication and initialize
-  if (imu.begin() != INV_SUCCESS)
-  {
-    while (1)
-    {
-      SerialPort.println("Unable to communicate with MPU-9250");
-      SerialPort.println("Check connections, and try again.");
-      SerialPort.println();
-      delay(5000);
-    }
-  }
-  
-  imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT | // Enable 6-axis quat
-               DMP_FEATURE_GYRO_CAL, // Use gyro calibration
-              10); // Set DMP FIFO rate to 10 Hz
-  // DMP_FEATURE_LP_QUAT can also be used. It uses the 
-  // accelerometer in low-power mode to estimate quat's.
-  // DMP_FEATURE_LP_QUAT and 6X_LP_QUAT are mutually exclusive
+MPU9250 mpu(SPI_CLOCK, SS_PIN);
+
+void setup() {
+	Serial.begin(115200);
+
+	pinMode(INT_PIN, INPUT);
+	pinMode(LED, OUTPUT);
+	digitalWrite(LED, HIGH);
+
+	SPI.begin();
+
+	//Serial.println("Press any key to continue");
+	//WAITFORINPUT();
+
+	mpu.init(true);
+
+	uint8_t wai = mpu.whoami();
+	if (wai == 0x71){
+		Serial.println("Successful connection");
+	}
+	else{
+		Serial.print("Failed connection: ");
+		Serial.println(wai, HEX);
+	}
+
+	uint8_t wai_AK8963 = mpu.AK8963_whoami();
+	if (wai_AK8963 == 0x48){
+		Serial.println("Successful connection to mag");
+	}
+	else{
+		Serial.print("Failed connection to mag: ");
+		Serial.println(wai_AK8963, HEX);
+	}
+
+	mpu.calib_acc();
+	mpu.calib_mag();
+
+	Serial.println("Send any char to begin main loop.");
+	WAITFORINPUT();
 }
 
-void loop() 
-{
-  // Check for new data in the FIFO
-  if ( imu.fifoAvailable() )
-  {
-    // Use dmpUpdateFifo to update the ax, gx, mx, etc. values
-    if ( imu.dmpUpdateFifo() == INV_SUCCESS)
-    {
-      // computeEulerAngles can be used -- after updating the
-      // quaternion values -- to estimate roll, pitch, and yaw
-      imu.computeEulerAngles();
-      printIMUData();
-    }
-  }
-  else
-  {
-      Serial.println("No fifo available");
-  }
-  
-}
+void loop() {
+	// various functions for reading
+	// mpu.read_mag();
+	// mpu.read_acc();
+	// mpu.read_gyro();
 
-void printIMUData(void)
-{  
-  // After calling dmpUpdateFifo() the ax, gx, mx, etc. values
-  // are all updated.
-  // Quaternion values are, by default, stored in Q30 long
-  // format. calcQuat turns them into a float between -1 and 1
-  float q0 = imu.calcQuat(imu.qw);
-  float q1 = imu.calcQuat(imu.qx);
-  float q2 = imu.calcQuat(imu.qy);
-  float q3 = imu.calcQuat(imu.qz);
+	mpu.read_all();
 
-  SerialPort.println("Q: " + String(q0, 4) + ", " +
-                    String(q1, 4) + ", " + String(q2, 4) + 
-                    ", " + String(q3, 4));
-  SerialPort.println("R/P/Y: " + String(imu.roll) + ", "
-            + String(imu.pitch) + ", " + String(imu.yaw));
-  SerialPort.println("Time: " + String(imu.time) + " ms");
-  SerialPort.println();
+	Serial.print(mpu.gyro_data[0]);   Serial.print('\t');
+	Serial.print(mpu.gyro_data[1]);   Serial.print('\t');
+	Serial.print(mpu.gyro_data[2]);   Serial.print('\t');
+	Serial.print(mpu.accel_data[0]);  Serial.print('\t');
+	Serial.print(mpu.accel_data[1]);  Serial.print('\t');
+	Serial.print(mpu.accel_data[2]);  Serial.print('\t');
+	Serial.print(mpu.mag_data[0]);    Serial.print('\t');
+	Serial.print(mpu.mag_data[1]);    Serial.print('\t');
+	Serial.print(mpu.mag_data[2]);    Serial.print('\t');
+	Serial.println(mpu.temperature);
+
+	delay(10);
 }

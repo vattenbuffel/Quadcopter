@@ -1,309 +1,264 @@
-/*
-  MPU9250.h
-  Brian R Taylor
-  brian.taylor@bolderflight.com
-
-  Copyright (c) 2017 Bolder Flight Systems
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+/**
+ * Invensense MPU-9250 library using the SPI interface
+ *
+ * Copyright (C) 2015 Brian Chen
+ * 
+ * Open source under the MIT License. See LICENSE.txt.
+ */
 
 #ifndef MPU9250_h
 #define MPU9250_h
-
 #include "Arduino.h"
-#include "Wire.h"    // I2C library
-#include "SPI.h"     // SPI library
 
-class MPU9250{
-  public:
-    enum GyroRange
-    {
-      GYRO_RANGE_250DPS,
-      GYRO_RANGE_500DPS,
-      GYRO_RANGE_1000DPS,
-      GYRO_RANGE_2000DPS
-    };
-    enum AccelRange
-    {
-      ACCEL_RANGE_2G,
-      ACCEL_RANGE_4G,
-      ACCEL_RANGE_8G,
-      ACCEL_RANGE_16G    
-    };
-    enum DlpfBandwidth
-    {
-      DLPF_BANDWIDTH_184HZ,
-      DLPF_BANDWIDTH_92HZ,
-      DLPF_BANDWIDTH_41HZ,
-      DLPF_BANDWIDTH_20HZ,
-      DLPF_BANDWIDTH_10HZ,
-      DLPF_BANDWIDTH_5HZ
-    };
-    enum LpAccelOdr
-    {
-      LP_ACCEL_ODR_0_24HZ = 0,
-      LP_ACCEL_ODR_0_49HZ = 1,
-      LP_ACCEL_ODR_0_98HZ = 2,
-      LP_ACCEL_ODR_1_95HZ = 3,
-      LP_ACCEL_ODR_3_91HZ = 4,
-      LP_ACCEL_ODR_7_81HZ = 5,
-      LP_ACCEL_ODR_15_63HZ = 6,
-      LP_ACCEL_ODR_31_25HZ = 7,
-      LP_ACCEL_ODR_62_50HZ = 8,
-      LP_ACCEL_ODR_125HZ = 9,
-      LP_ACCEL_ODR_250HZ = 10,
-      LP_ACCEL_ODR_500HZ = 11
-    };
-    MPU9250(TwoWire &bus,uint8_t address);
-    MPU9250(SPIClass &bus,uint8_t csPin);
-    int begin();
-    int setAccelRange(AccelRange range);
-    int setGyroRange(GyroRange range);
-    int setDlpfBandwidth(DlpfBandwidth bandwidth);
-    int setSrd(uint8_t srd);
-    int enableDataReadyInterrupt();
-    int disableDataReadyInterrupt();
-    int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr);
-    int readSensor();
-    float getAccelX_mss();
-    float getAccelY_mss();
-    float getAccelZ_mss();
-    float getGyroX_rads();
-    float getGyroY_rads();
-    float getGyroZ_rads();
-    float getMagX_uT();
-    float getMagY_uT();
-    float getMagZ_uT();
-    float getTemperature_C();
+// #define AK8963FASTMODE
+
+// mpu9250 registers
+#define MPUREG_XG_OFFS_TC 0x00
+#define MPUREG_YG_OFFS_TC 0x01
+#define MPUREG_ZG_OFFS_TC 0x02
+#define MPUREG_X_FINE_GAIN 0x03
+#define MPUREG_Y_FINE_GAIN 0x04
+#define MPUREG_Z_FINE_GAIN 0x05
+#define MPUREG_XA_OFFS_H 0x06
+#define MPUREG_XA_OFFS_L 0x07
+#define MPUREG_YA_OFFS_H 0x08
+#define MPUREG_YA_OFFS_L 0x09
+#define MPUREG_ZA_OFFS_H 0x0A
+#define MPUREG_ZA_OFFS_L 0x0B
+#define MPUREG_PRODUCT_ID 0x0C
+#define MPUREG_SELF_TEST_X 0x0D
+#define MPUREG_SELF_TEST_Y 0x0E
+#define MPUREG_SELF_TEST_Z 0x0F
+#define MPUREG_SELF_TEST_A 0x10
+#define MPUREG_XG_OFFS_USRH 0x13
+#define MPUREG_XG_OFFS_USRL 0x14
+#define MPUREG_YG_OFFS_USRH 0x15
+#define MPUREG_YG_OFFS_USRL 0x16
+#define MPUREG_ZG_OFFS_USRH 0x17
+#define MPUREG_ZG_OFFS_USRL 0x18
+#define MPUREG_SMPLRT_DIV 0x19
+#define MPUREG_CONFIG 0x1A
+#define MPUREG_GYRO_CONFIG 0x1B
+#define MPUREG_ACCEL_CONFIG 0x1C
+#define MPUREG_ACCEL_CONFIG_2      0x1D
+#define MPUREG_LP_ACCEL_ODR        0x1E
+#define MPUREG_MOT_THR             0x1F
+#define MPUREG_FIFO_EN             0x23
+#define MPUREG_I2C_MST_CTRL        0x24
+#define MPUREG_I2C_SLV0_ADDR       0x25
+#define MPUREG_I2C_SLV0_REG        0x26
+#define MPUREG_I2C_SLV0_CTRL       0x27
+#define MPUREG_I2C_SLV1_ADDR       0x28
+#define MPUREG_I2C_SLV1_REG        0x29
+#define MPUREG_I2C_SLV1_CTRL       0x2A
+#define MPUREG_I2C_SLV2_ADDR       0x2B
+#define MPUREG_I2C_SLV2_REG        0x2C
+#define MPUREG_I2C_SLV2_CTRL       0x2D
+#define MPUREG_I2C_SLV3_ADDR       0x2E
+#define MPUREG_I2C_SLV3_REG        0x2F
+#define MPUREG_I2C_SLV3_CTRL       0x30
+#define MPUREG_I2C_SLV4_ADDR       0x31
+#define MPUREG_I2C_SLV4_REG        0x32
+#define MPUREG_I2C_SLV4_DO         0x33
+#define MPUREG_I2C_SLV4_CTRL       0x34
+#define MPUREG_I2C_SLV4_DI         0x35
+#define MPUREG_I2C_MST_STATUS      0x36
+#define MPUREG_INT_PIN_CFG 0x37
+#define MPUREG_INT_ENABLE 0x38
+#define MPUREG_ACCEL_XOUT_H 0x3B
+#define MPUREG_ACCEL_XOUT_L 0x3C
+#define MPUREG_ACCEL_YOUT_H 0x3D
+#define MPUREG_ACCEL_YOUT_L 0x3E
+#define MPUREG_ACCEL_ZOUT_H 0x3F
+#define MPUREG_ACCEL_ZOUT_L 0x40
+#define MPUREG_TEMP_OUT_H 0x41
+#define MPUREG_TEMP_OUT_L 0x42
+#define MPUREG_GYRO_XOUT_H 0x43
+#define MPUREG_GYRO_XOUT_L 0x44
+#define MPUREG_GYRO_YOUT_H 0x45
+#define MPUREG_GYRO_YOUT_L 0x46
+#define MPUREG_GYRO_ZOUT_H 0x47
+#define MPUREG_GYRO_ZOUT_L 0x48
+#define MPUREG_EXT_SENS_DATA_00    0x49
+#define MPUREG_EXT_SENS_DATA_01    0x4A
+#define MPUREG_EXT_SENS_DATA_02    0x4B
+#define MPUREG_EXT_SENS_DATA_03    0x4C
+#define MPUREG_EXT_SENS_DATA_04    0x4D
+#define MPUREG_EXT_SENS_DATA_05    0x4E
+#define MPUREG_EXT_SENS_DATA_06    0x4F
+#define MPUREG_EXT_SENS_DATA_07    0x50
+#define MPUREG_EXT_SENS_DATA_08    0x51
+#define MPUREG_EXT_SENS_DATA_09    0x52
+#define MPUREG_EXT_SENS_DATA_10    0x53
+#define MPUREG_EXT_SENS_DATA_11    0x54
+#define MPUREG_EXT_SENS_DATA_12    0x55
+#define MPUREG_EXT_SENS_DATA_13    0x56
+#define MPUREG_EXT_SENS_DATA_14    0x57
+#define MPUREG_EXT_SENS_DATA_15    0x58
+#define MPUREG_EXT_SENS_DATA_16    0x59
+#define MPUREG_EXT_SENS_DATA_17    0x5A
+#define MPUREG_EXT_SENS_DATA_18    0x5B
+#define MPUREG_EXT_SENS_DATA_19    0x5C
+#define MPUREG_EXT_SENS_DATA_20    0x5D
+#define MPUREG_EXT_SENS_DATA_21    0x5E
+#define MPUREG_EXT_SENS_DATA_22    0x5F
+#define MPUREG_EXT_SENS_DATA_23    0x60
+#define MPUREG_I2C_SLV0_DO         0x63
+#define MPUREG_I2C_SLV1_DO         0x64
+#define MPUREG_I2C_SLV2_DO         0x65
+#define MPUREG_I2C_SLV3_DO         0x66
+#define MPUREG_I2C_MST_DELAY_CTRL  0x67
+#define MPUREG_SIGNAL_PATH_RESET   0x68
+#define MPUREG_MOT_DETECT_CTRL     0x69
+#define MPUREG_USER_CTRL 0x6A
+#define MPUREG_PWR_MGMT_1 0x6B
+#define MPUREG_PWR_MGMT_2 0x6C
+#define MPUREG_BANK_SEL 0x6D
+#define MPUREG_MEM_START_ADDR 0x6E
+#define MPUREG_MEM_R_W 0x6F
+#define MPUREG_DMP_CFG_1 0x70
+#define MPUREG_DMP_CFG_2 0x71
+#define MPUREG_FIFO_COUNTH 0x72
+#define MPUREG_FIFO_COUNTL 0x73
+#define MPUREG_FIFO_R_W 0x74
+#define MPUREG_WHOAMI 0x75
+#define MPUREG_XA_OFFSET_H         0x77
+#define MPUREG_XA_OFFSET_L         0x78
+#define MPUREG_YA_OFFSET_H         0x7A
+#define MPUREG_YA_OFFSET_L         0x7B
+#define MPUREG_ZA_OFFSET_H         0x7D
+#define MPUREG_ZA_OFFSET_L         0x7E
+/* ---- AK8963 Reg In MPU9250 ----------------------------------------------- */
+ 
+#define AK8963_I2C_ADDR             0x0c//0x18
+#define AK8963_Device_ID            0x48
+ 
+// Read-only Reg
+#define AK8963_WIA                  0x00
+#define AK8963_INFO                 0x01
+#define AK8963_ST1                  0x02
+#define AK8963_HXL                  0x03
+#define AK8963_HXH                  0x04
+#define AK8963_HYL                  0x05
+#define AK8963_HYH                  0x06
+#define AK8963_HZL                  0x07
+#define AK8963_HZH                  0x08
+#define AK8963_ST2                  0x09
+// Write/Read Reg
+#define AK8963_CNTL1                0x0A
+#define AK8963_CNTL2                0x0B
+#define AK8963_ASTC                 0x0C
+#define AK8963_TS1                  0x0D
+#define AK8963_TS2                  0x0E
+#define AK8963_I2CDIS               0x0F
+// Read-only Reg ( ROM )
+#define AK8963_ASAX                 0x10
+#define AK8963_ASAY                 0x11
+#define AK8963_ASAZ                 0x12
+ 
+// Configuration bits mpu9250
+#define BIT_SLEEP 0x40
+#define BIT_H_RESET 0x80
+#define BITS_CLKSEL 0x07
+#define MPU_CLK_SEL_PLLGYROX 0x01
+#define MPU_CLK_SEL_PLLGYROZ 0x03
+#define MPU_EXT_SYNC_GYROX 0x02
+#define BITS_FS_250DPS              0x00
+#define BITS_FS_500DPS              0x08
+#define BITS_FS_1000DPS             0x10
+#define BITS_FS_2000DPS             0x18
+#define BITS_FS_2G                  0x00
+#define BITS_FS_4G                  0x08
+#define BITS_FS_8G                  0x10
+#define BITS_FS_16G                 0x18
+#define BITS_FS_MASK                0x18
+#define BITS_DLPF_CFG_256HZ_NOLPF2  0x00
+#define BITS_DLPF_CFG_188HZ         0x01
+#define BITS_DLPF_CFG_98HZ          0x02
+#define BITS_DLPF_CFG_42HZ          0x03
+#define BITS_DLPF_CFG_20HZ          0x04
+#define BITS_DLPF_CFG_10HZ          0x05
+#define BITS_DLPF_CFG_5HZ           0x06
+#define BITS_DLPF_CFG_2100HZ_NOLPF  0x07
+#define BITS_DLPF_CFG_MASK          0x07
+#define BIT_INT_ANYRD_2CLEAR        0x10
+#define BIT_RAW_RDY_EN              0x01
+#define BIT_I2C_IF_DIS              0x10
+ 
+#define READ_FLAG   0x80
+ 
+/* ---- Sensitivity --------------------------------------------------------- */
+ 
+#define MPU9250A_2g       ((float)0.000061035156f) // 0.000061035156 g/LSB
+#define MPU9250A_4g       ((float)0.000122070312f) // 0.000122070312 g/LSB
+#define MPU9250A_8g       ((float)0.000244140625f) // 0.000244140625 g/LSB
+#define MPU9250A_16g      ((float)0.000488281250f) // 0.000488281250 g/LSB
+ 
+#define MPU9250G_250dps   ((float)0.007633587786f) // 0.007633587786 dps/LSB
+#define MPU9250G_500dps   ((float)0.015267175572f) // 0.015267175572 dps/LSB
+#define MPU9250G_1000dps  ((float)0.030487804878f) // 0.030487804878 dps/LSB
+#define MPU9250G_2000dps  ((float)0.060975609756f) // 0.060975609756 dps/LSB
+ 
+#define MPU9250M_4800uT   ((float)0.6f)            // 0.6 uT/LSB
+ 
+#define MPU9250T_85degC   ((float)0.002995177763f) // 0.002995177763 degC/LSB
+ 
+#define     Magnetometer_Sensitivity_Scale_Factor ((float)0.15f)    
+ 
+
+class MPU9250 {   
+public:
+    // constructor. Default low pass filter of 188Hz
+    MPU9250(long clock, uint8_t cs, uint8_t low_pass_filter = BITS_DLPF_CFG_188HZ, uint8_t low_pass_filter_acc = BITS_DLPF_CFG_188HZ){
+        my_clock = clock;
+        my_cs = cs;
+        my_low_pass_filter = low_pass_filter;
+        my_low_pass_filter_acc = low_pass_filter_acc;
+    }
+    unsigned int WriteReg(uint8_t WriteAddr, uint8_t WriteData );
+    unsigned int ReadReg(uint8_t WriteAddr, uint8_t WriteData );
+    void ReadRegs(uint8_t ReadAddr, uint8_t *ReadBuf, unsigned int Bytes );
+ 
+    bool init(bool calib_gyro = true, bool calib_acc = true);
+    void read_temp();
+    void read_acc();
+    void read_gyro();
+    unsigned int set_gyro_scale(int scale);
+    unsigned int set_acc_scale(int scale);
+    void calib_acc();
+    void calib_mag();
+    void select();
+    void deselect();
+    unsigned int whoami();
+    uint8_t AK8963_whoami();
+    uint8_t get_CNTL1();
+    void read_mag();
+    void read_all();
+    void calibrate(float *dest1, float *dest2);
+ 
     
-    int calibrateGyro();
-    float getGyroBiasX_rads();
-    float getGyroBiasY_rads();
-    float getGyroBiasZ_rads();
-    void setGyroBiasX_rads(float bias);
-    void setGyroBiasY_rads(float bias);
-    void setGyroBiasZ_rads(float bias);
-    int calibrateAccel();
-    float getAccelBiasX_mss();
-    float getAccelScaleFactorX();
-    float getAccelBiasY_mss();
-    float getAccelScaleFactorY();
-    float getAccelBiasZ_mss();
-    float getAccelScaleFactorZ();
-    void setAccelCalX(float bias,float scaleFactor);
-    void setAccelCalY(float bias,float scaleFactor);
-    void setAccelCalZ(float bias,float scaleFactor);
-    int calibrateMag();
-    float getMagBiasX_uT();
-    float getMagScaleFactorX();
-    float getMagBiasY_uT();
-    float getMagScaleFactorY();
-    float getMagBiasZ_uT();
-    float getMagScaleFactorZ();
-    void setMagCalX(float bias,float scaleFactor);
-    void setMagCalY(float bias,float scaleFactor);
-    void setMagCalZ(float bias,float scaleFactor);
-  protected:
-    // i2c
-    uint8_t _address;
-    TwoWire *_i2c;
-    const uint32_t _i2cRate = 400000; // 400 kHz
-    size_t _numBytes; // number of bytes received from I2C
-    // spi
-    SPIClass *_spi;
-    uint8_t _csPin;
-    bool _useSPI;
-    bool _useSPIHS;
-    const uint8_t SPI_READ = 0x80;
-    const uint32_t SPI_LS_CLOCK = 1000000;  // 1 MHz
-    const uint32_t SPI_HS_CLOCK = 15000000; // 15 MHz
-    // track success of interacting with sensor
-    int _status;
-    // buffer for reading from sensor
-    uint8_t _buffer[21];
-    // data counts
-    int16_t _axcounts,_aycounts,_azcounts;
-    int16_t _gxcounts,_gycounts,_gzcounts;
-    int16_t _hxcounts,_hycounts,_hzcounts;
-    int16_t _tcounts;
-    // data buffer
-    float _ax, _ay, _az;
-    float _gx, _gy, _gz;
-    float _hx, _hy, _hz;
-    float _t;
-    // wake on motion
-    uint8_t _womThreshold;
-    // scale factors
-    float _accelScale;
-    float _gyroScale;
-    float _magScaleX, _magScaleY, _magScaleZ;
-    const float _tempScale = 333.87f;
-    const float _tempOffset = 21.0f;
-    // configuration
-    AccelRange _accelRange;
-    GyroRange _gyroRange;
-    DlpfBandwidth _bandwidth;
-    uint8_t _srd;
-    // gyro bias estimation
-    size_t _numSamples = 100;
-    double _gxbD, _gybD, _gzbD;
-    float _gxb, _gyb, _gzb;
-    // accel bias and scale factor estimation
-    double _axbD, _aybD, _azbD;
-    float _axmax, _aymax, _azmax;
-    float _axmin, _aymin, _azmin;
-    float _axb, _ayb, _azb;
-    float _axs = 1.0f;
-    float _ays = 1.0f;
-    float _azs = 1.0f;
-    // magnetometer bias and scale factor estimation
-    uint16_t _maxCounts = 1000;
-    float _deltaThresh = 0.3f;
-    uint8_t _coeff = 8;
-    uint16_t _counter;
-    float _framedelta, _delta;
-    float _hxfilt, _hyfilt, _hzfilt;
-    float _hxmax, _hymax, _hzmax;
-    float _hxmin, _hymin, _hzmin;
-    float _hxb, _hyb, _hzb;
-    float _hxs = 1.0f;
-    float _hys = 1.0f;
-    float _hzs = 1.0f;
-    float _avgs;
-    // transformation matrix
-    /* transform the accel and gyro axes to match the magnetometer axes */
-    const int16_t tX[3] = {0,  1,  0}; 
-    const int16_t tY[3] = {1,  0,  0};
-    const int16_t tZ[3] = {0,  0, -1};
-    // constants
-    const float G = 9.807f;
-    const float _d2r = 3.14159265359f/180.0f;
-    // MPU9250 registers
-    const uint8_t ACCEL_OUT = 0x3B;
-    const uint8_t GYRO_OUT = 0x43;
-    const uint8_t TEMP_OUT = 0x41;
-    const uint8_t EXT_SENS_DATA_00 = 0x49;
-    const uint8_t ACCEL_CONFIG = 0x1C;
-    const uint8_t ACCEL_FS_SEL_2G = 0x00;
-    const uint8_t ACCEL_FS_SEL_4G = 0x08;
-    const uint8_t ACCEL_FS_SEL_8G = 0x10;
-    const uint8_t ACCEL_FS_SEL_16G = 0x18;
-    const uint8_t GYRO_CONFIG = 0x1B;
-    const uint8_t GYRO_FS_SEL_250DPS = 0x00;
-    const uint8_t GYRO_FS_SEL_500DPS = 0x08;
-    const uint8_t GYRO_FS_SEL_1000DPS = 0x10;
-    const uint8_t GYRO_FS_SEL_2000DPS = 0x18;
-    const uint8_t ACCEL_CONFIG2 = 0x1D;
-    const uint8_t ACCEL_DLPF_184 = 0x01;
-    const uint8_t ACCEL_DLPF_92 = 0x02;
-    const uint8_t ACCEL_DLPF_41 = 0x03;
-    const uint8_t ACCEL_DLPF_20 = 0x04;
-    const uint8_t ACCEL_DLPF_10 = 0x05;
-    const uint8_t ACCEL_DLPF_5 = 0x06;
-    const uint8_t CONFIG = 0x1A;
-    const uint8_t GYRO_DLPF_184 = 0x01;
-    const uint8_t GYRO_DLPF_92 = 0x02;
-    const uint8_t GYRO_DLPF_41 = 0x03;
-    const uint8_t GYRO_DLPF_20 = 0x04;
-    const uint8_t GYRO_DLPF_10 = 0x05;
-    const uint8_t GYRO_DLPF_5 = 0x06;
-    const uint8_t SMPDIV = 0x19;
-    const uint8_t INT_PIN_CFG = 0x37;
-    const uint8_t INT_ENABLE = 0x38;
-    const uint8_t INT_DISABLE = 0x00;
-    const uint8_t INT_PULSE_50US = 0x00;
-    const uint8_t INT_WOM_EN = 0x40;
-    const uint8_t INT_RAW_RDY_EN = 0x01;
-    const uint8_t PWR_MGMNT_1 = 0x6B;
-    const uint8_t PWR_CYCLE = 0x20;
-    const uint8_t PWR_RESET = 0x80;
-    const uint8_t CLOCK_SEL_PLL = 0x01;
-    const uint8_t PWR_MGMNT_2 = 0x6C;
-    const uint8_t SEN_ENABLE = 0x00;
-    const uint8_t DIS_GYRO = 0x07;
-    const uint8_t USER_CTRL = 0x6A;
-    const uint8_t I2C_MST_EN = 0x20;
-    const uint8_t I2C_MST_CLK = 0x0D;
-    const uint8_t I2C_MST_CTRL = 0x24;
-    const uint8_t I2C_SLV0_ADDR = 0x25;
-    const uint8_t I2C_SLV0_REG = 0x26;
-    const uint8_t I2C_SLV0_DO = 0x63;
-    const uint8_t I2C_SLV0_CTRL = 0x27;
-    const uint8_t I2C_SLV0_EN = 0x80;
-    const uint8_t I2C_READ_FLAG = 0x80;
-    const uint8_t MOT_DETECT_CTRL = 0x69;
-    const uint8_t ACCEL_INTEL_EN = 0x80;
-    const uint8_t ACCEL_INTEL_MODE = 0x40;
-    const uint8_t LP_ACCEL_ODR = 0x1E;
-    const uint8_t WOM_THR = 0x1F;
-    const uint8_t WHO_AM_I = 0x75;
-    const uint8_t FIFO_EN = 0x23;
-    const uint8_t FIFO_TEMP = 0x80;
-    const uint8_t FIFO_GYRO = 0x70;
-    const uint8_t FIFO_ACCEL = 0x08;
-    const uint8_t FIFO_MAG = 0x01;
-    const uint8_t FIFO_COUNT = 0x72;
-    const uint8_t FIFO_READ = 0x74;
-    // AK8963 registers
-    const uint8_t AK8963_I2C_ADDR = 0x0C;
-    const uint8_t AK8963_HXL = 0x03; 
-    const uint8_t AK8963_CNTL1 = 0x0A;
-    const uint8_t AK8963_PWR_DOWN = 0x00;
-    const uint8_t AK8963_CNT_MEAS1 = 0x12;
-    const uint8_t AK8963_CNT_MEAS2 = 0x16;
-    const uint8_t AK8963_FUSE_ROM = 0x0F;
-    const uint8_t AK8963_CNTL2 = 0x0B;
-    const uint8_t AK8963_RESET = 0x01;
-    const uint8_t AK8963_ASA = 0x10;
-    const uint8_t AK8963_WHO_AM_I = 0x00;
-    // private functions
-    int writeRegister(uint8_t subAddress, uint8_t data);
-    int readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest);
-    int writeAK8963Register(uint8_t subAddress, uint8_t data);
-    int readAK8963Registers(uint8_t subAddress, uint8_t count, uint8_t* dest);
-    int whoAmI();
-    int whoAmIAK8963();
-};
+    float acc_divider;
+    float gyro_divider;
+    
+    int calib_data[3];
+    float Magnetometer_ASA[3];
+ 
+    float accel_data[3];
+    float temperature;
+    float gyro_data[3];
+    float mag_data[3];
+    int16_t mag_data_raw[3];    
 
-class MPU9250FIFO: public MPU9250 {
-  public:
-    using MPU9250::MPU9250;
-    int enableFifo(bool accel,bool gyro,bool mag,bool temp);
-    int readFifo();
-    void getFifoAccelX_mss(size_t *size,float* data);
-    void getFifoAccelY_mss(size_t *size,float* data);
-    void getFifoAccelZ_mss(size_t *size,float* data);
-    void getFifoGyroX_rads(size_t *size,float* data);
-    void getFifoGyroY_rads(size_t *size,float* data);
-    void getFifoGyroZ_rads(size_t *size,float* data);
-    void getFifoMagX_uT(size_t *size,float* data);
-    void getFifoMagY_uT(size_t *size,float* data);
-    void getFifoMagZ_uT(size_t *size,float* data);
-    void getFifoTemperature_C(size_t *size,float* data);
-  protected:
-    // fifo
-    bool _enFifoAccel,_enFifoGyro,_enFifoMag,_enFifoTemp;
-    size_t _fifoSize,_fifoFrameSize;
-    float _axFifo[85], _ayFifo[85], _azFifo[85];
-    size_t _aSize;
-    float _gxFifo[85], _gyFifo[85], _gzFifo[85];
-    size_t _gSize;
-    float _hxFifo[73], _hyFifo[73], _hzFifo[73];
-    size_t _hSize;
-    float _tFifo[256];
-    size_t _tSize;
-};
+private:
+    long my_clock;
+    uint8_t my_cs;
+    uint8_t my_low_pass_filter;
+    uint8_t my_low_pass_filter_acc;
 
+    //float randomstuffs[3];
+
+    float g_bias[3];
+    float a_bias[3];      // Bias corrections for gyro and accelerometer
+};
+ 
 #endif
