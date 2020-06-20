@@ -126,7 +126,7 @@ void complementary_filter(){
   // Add previous estimated angles to gyro estimated angle change and multiply with gamma
   gyrX = (gyrX + X) * gamma;
   gyrY = (gyrY + Y) * gamma;
-  gyrZ = (gyrZ + Z) * gamma;
+  gyrZ = (gyrZ + Z);
 
   //Convert acc to rad
   float g = -9.81;
