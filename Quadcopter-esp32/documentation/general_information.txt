@@ -1,0 +1,14 @@
+core1 = general stuff
+core0 = High priority stuff
+
+
+Core1 is/should run:
+	Receiving commands via bluetooth
+	Measure distance to ground
+
+Core0 is/should run:
+	Handling the commands, i.e. changing the reference values
+	Complementary filter
+	PID-controller
+
+

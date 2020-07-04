@@ -1,0 +1,13 @@
+App used: Arduino Bluetooth controller
+
+Commands:
+	Left: 0 : Tilts negatively around x-axis
+	Up: 1 : Tilts positively around y-axis
+	Right: 2 : Tilts positively around x-axis
+	Down: 3 : Tilts negatively around y-axis
+	Select: 4 : Unused
+	Start: 5 : Stops or starts the motors 
+	Square: 6 : Unused
+	Triangle: 7 : Increase base_thrust
+	Cross: 8 : Unused
+	Circle: 9 : Decrease base_thrust

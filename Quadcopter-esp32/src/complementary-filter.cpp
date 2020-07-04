@@ -29,7 +29,7 @@ void compensate(){
 }
 
 void complementary_filter(){
-  float h = 0.025;
+  float h = 0.002;
   float alpha = 0.1;
   float gamma = alpha/(h+alpha);
 
