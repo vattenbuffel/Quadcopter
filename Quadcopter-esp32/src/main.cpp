@@ -4,6 +4,7 @@
 #include "distance_measurement.h"
 #include "complementary-filter.h"
 #include "controller.h"
+#include "PID.h"
 
 void core_zero_task(void* pvParameters);
 QueueHandle_t distance_queue;
@@ -15,13 +16,13 @@ void setup(){
 
   init_mpu();
 
-  controller_init();
-
   /*QueueHandle_t*/ command_queue = xQueueCreate(10, sizeof(int));
   command_init(command_queue);
   
   /*QueueHandle_t*/ distance_queue = xQueueCreate(1, sizeof(volatile int));
   distance_measurement_init(distance_queue);
+  
+  controller_init(distance_queue, command_queue);
   
 }
 

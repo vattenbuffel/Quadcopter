@@ -1,5 +1,6 @@
 #include "complementary-filter.h"
 #include <MPU9250_asukiaaa.h>
+#include "FreeRTOS.h"
 
 MPU9250_asukiaaa mySensor;
 float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY, mZ;

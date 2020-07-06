@@ -10,10 +10,9 @@ typedef enum {
     POS_NW,
 } position;
 
-typedef struct PID_t
-{
+typedef struct PID_orientation_t {
     uint8_t pin;
-    float throttle, base_throttle; // eventually update base_throttle based on the distance from the ground
+    float throttle, base_throttle; 
     float Kp, Ki, IX, IY, IZ;
     float rX, rY, rZ; // in rad
     long t_prev;
@@ -21,8 +20,20 @@ typedef struct PID_t
 
 };
 
-void update_throttle(PID_t* pid);
-void limit_throttle(PID_t* pid);
-void change_ref(PID_t* pid, float rX, float rY, float rZ); // never used
+typedef struct PID_height_t {
+    float base_throttle; // eventually update base_throttle based on the distance from the ground
+    float Kp, Ki, I;
+    float r; // in m
+    long t_prev;
+    QueueHandle_t distance_queue;
+};
+
+void update_throttle(PID_orientation_t* pid);
+void limit_throttle(PID_orientation_t* pid);
+void change_ref(PID_orientation_t* pid, float rX, float rY, float rZ);
+void change_base_throttle(PID_orientation_t* pid, float base_throttle);
+
+void update_throttle(PID_height_t* pid);
+void change_ref(PID_height_t* pid, float r);
 
 #endif //PID_H_
