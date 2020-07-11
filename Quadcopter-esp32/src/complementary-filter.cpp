@@ -3,11 +3,14 @@
 #include "FreeRTOS.h"
 
 MPU9250_asukiaaa mySensor;
+xSemaphoreHandle wire_lock_filter;
 float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY, mZ;
 
 float X = 0;
 float Y = 0;
 float Z = 0;
+
+unsigned long last_update_filter;
 
 
 void compensate(){
@@ -63,24 +66,46 @@ void complementary_filter(){
   Z = gyrZ;
 }
 
-void init_mpu(){
-    mySensor.beginAccel();
-    mySensor.beginGyro();
-    mySensor.beginMag();
+void init_mpu(xSemaphoreHandle wire_lock){
+  wire_lock_filter = wire_lock;
+  last_update_filter = millis();
+  mySensor.beginAccel();
+  mySensor.beginGyro();
+  mySensor.beginMag();
 }
 
 void update_filter(){
-    if (mySensor.accelUpdate() == 0 && mySensor.gyroUpdate() == 0) {
-    accelX = mySensor.accelX();
-    accelY = mySensor.accelY();
-    accelZ = mySensor.accelZ();
-    gyroX = mySensor.gyroX();
-    gyroY = mySensor.gyroY();
-    gyroZ = mySensor.gyroZ();
-    compensate();
 
-    complementary_filter();
+  // Check if it's time to update
+  if(last_update_filter + 1.f / FILTER_UPDATE_HZ * 1000 > millis())
+    return;
+    
+  last_update_filter = millis();
+
+  // Make sure wire is available
+  xSemaphoreTake(wire_lock_filter, portMAX_DELAY);
+  // printf("filter took lock\n");
+
+  // check if there's new data
+  if (mySensor.accelUpdate() != 0 || mySensor.gyroUpdate() != 0){
+    xSemaphoreGive(wire_lock_filter);
+    return;
   }
+  
+  // It's time to update, wire is available and there is new data. Estimate orientation
+  accelX = mySensor.accelX();
+  accelY = mySensor.accelY();
+  accelZ = mySensor.accelZ();
+  gyroX = mySensor.gyroX();
+  gyroY = mySensor.gyroY();
+  gyroZ = mySensor.gyroZ();
+  xSemaphoreGive(wire_lock_filter);
+
+  compensate();
+  complementary_filter();
+  // printf("filter gave lock\n");
+
+  
 }
 
 float get_X(){return X;}
