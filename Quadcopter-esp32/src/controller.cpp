@@ -31,15 +31,28 @@ void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue){
     pid_NE.pos = POS_NE;
     pid_NE.t_prev = micros();
     pid_NE.rZ = pid_NE.rY = pid_NE.rX = 0;
-    pid_NE.Ki = 0.1;
-    pid_NE.Kp = 1;
+    pid_NE.Ki = 1000;
+    pid_NE.Kp = 2000;
     pid_NE.IX = pid_NE.IY = pid_NE.IZ = 0;
     pid_NE.base_throttle = 0;
+    pid_NE.max_throttle = CONTROLLER_MAX_THROTTLE;
+    pid_NE.min_throttle = CONTROLLER_MIN_THROTTLE;
     
-    ESC_NE.attach(NE_PIN,1000,2000); // (pin, min pulse width, max pulse width in microseconds) 
-    ESC_SE.attach(SE_PIN,1000,2000); // (pin, min pulse width, max pulse width in microseconds) 
-    ESC_SW.attach(SW_PIN,1000,2000); // (pin, min pulse width, max pulse width in microseconds) 
-    ESC_NW.attach(NW_PIN,1000,2000); // (pin, min pulse width, max pulse width in microseconds) 
+    // Attach the motors, and set them to stationary. If a motor is connected to a pin which doesn't support PWM, stop the code from running.
+    bool pin_error = false;
+    pin_error = !ESC_NE.attach(NE_PIN, -1, 0, 180, 1000, 2000); // (pin, min pulse width, max pulse width in microseconds)         
+    ESC_NE.writeMicroseconds(1000);
+    pin_error = pin_error || !ESC_SE.attach(SE_PIN, -1, 0, 180, 1000, 2000); // (pin, min pulse width, max pulse width in microseconds) 
+    ESC_SE.writeMicroseconds(1000);
+    pin_error = pin_error || !ESC_SW.attach(SW_PIN, -1, 0, 180, 1000, 2000); // (pin, min pulse width, max pulse width in microseconds) 
+    ESC_SW.writeMicroseconds(1000);
+    pin_error = pin_error || !ESC_NW.attach(NW_PIN, -1, 0, 180, 1000, 2000); // (pin, min pulse width, max pulse width in microseconds) 
+    ESC_NW.writeMicroseconds(1000);
+    if (pin_error) {
+        printf("ERROR, A servo pin does not support pwn\n");
+        for(;;){vTaskDelay(1000000);}
+    }
+    printf("Attached servos\n");
 
     memcpy(&pid_SE, &pid_NE, sizeof(pid_NE)); //not sure if this works
     pid_SE.pos = POS_SE;
@@ -61,7 +74,7 @@ void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue){
     pid_height.r = 1;
     pid_height.t_prev = micros();
 
-  // Start the command handler so that the quad can be controlled via bluetooth
+  // Start the command handler so that the quad can be controlled via bluetooth 
   xTaskCreatePinnedToCore(controller_command_handler_task, "Command_handler_controller", configMINIMAL_STACK_SIZE*5, (void*)command_queue, 1, NULL, 0);
 }
 
@@ -79,18 +92,20 @@ void controller_actuate_motors(){
 
     // This is to make sure that the heartbeat signal has arrived in time. If not, stop the motors
     if (1.0 / CONTROLLER_HEARTBEAT_HZ * 1000 + heart_beat_time < millis() || stop){
-        ESC_NE.writeMicroseconds(0);
-        ESC_SE.writeMicroseconds(0);
-        ESC_SW.writeMicroseconds(0);
-        ESC_NW.writeMicroseconds(0);
+        printf("STOP\n");
+        ESC_NE.writeMicroseconds(1000);
+        ESC_SE.writeMicroseconds(1000);
+        ESC_SW.writeMicroseconds(1000);
+        ESC_NW.writeMicroseconds(1000);
         controller_reset_controllers();
         return;
     }
 
-    ESC_NE.writeMicroseconds(pid_NE.throttle + 1000);
-    ESC_SE.writeMicroseconds(pid_SE.throttle + 1000);
-    ESC_SW.writeMicroseconds(pid_SW.throttle + 1000);
-    ESC_NW.writeMicroseconds(pid_NW.throttle + 1000);
+    ESC_NE.writeMicroseconds(pid_NE.throttle + 1000.f);
+    ESC_SE.writeMicroseconds(pid_SE.throttle + 1000.f);
+    ESC_SW.writeMicroseconds(pid_SW.throttle + 1000.f);
+    ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
+    printf("Throttles: %f %f \n", pid_SE.throttle + 1000.f, pid_NW.throttle + 1000.f);
 }
 
 void controller_update_orientation(){
@@ -138,6 +153,7 @@ void controller_reset_controllers(){
     pid_height.I = 0;
     change_ref(&pid_height, 0);
 }
+
 
 // Handles the commands which are sent over bluetooth
 void controller_command_handler_task(void* pvParameter){

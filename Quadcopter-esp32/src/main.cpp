@@ -6,43 +6,59 @@
 #include "controller.h"
 #include "PID.h"
 
-#include <Wire.h>
-#include <VL53L0X.h>
+#include <Servo.h>
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
 
 xSemaphoreHandle wire_lock;
 
-unsigned long t_cur = millis();
-
 
 void setup(){
   Serial.begin(115200);
   printf("\n");
-
-  /*xSemaphoreHandle*/ wire_lock = xSemaphoreCreateBinary();
+  
+  wire_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(wire_lock);
   init_mpu(wire_lock);
   
 
-  /*QueueHandle_t*/ command_queue = xQueueCreate(10, sizeof(int));
+  command_queue = xQueueCreate(10, sizeof(int));
   command_init(command_queue);
 
-  /*QueueHandle_t*/ distance_queue = xQueueCreate(1, sizeof(float));
+  distance_queue = xQueueCreate(1, sizeof(height_type));
   distance_measurement_init(distance_queue, wire_lock);
   
   
   controller_init(distance_queue, command_queue);
   
 
+  /*Servo test_motor15,test_motor4;
+  if(!test_motor15.attach(15, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
+  if(!test_motor4.attach(4, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
+  for (;;) {
+    // printf("MAX!\n");
+    // test_motor15.writeMicroseconds(2000);
+    // test_motor4.writeMicroseconds(2000);
+    // delay(7000);
+
+    printf("MIN!\n");
+    test_motor4.writeMicroseconds(1000);
+    test_motor15.writeMicroseconds(1000);
+    delay(1000);
+    
+    printf("MAX!\n");
+    test_motor4.writeMicroseconds(1100);
+    test_motor15.writeMicroseconds(1100);
+    delay(100000);
+  }*/
 
 }
 
 void loop(){
   volatile int data;
-  float height;
-  if(xQueueReceive(distance_queue, &height, 0) == pdTRUE) printf("distance: %f\n", height);
+  height_type height;
+  //if(xQueueReceive(distance_queue, &height, 0) == pdTRUE) printf("distance: %f\n", height);
   //if(xQueueReceive(command_queue,  &data, 0) == pdTRUE) printf("command: %d\n", data);
 
   update_filter();
@@ -53,8 +69,7 @@ void loop(){
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
   
-
-  //controller_update();
+  controller_update();
  
 }
 

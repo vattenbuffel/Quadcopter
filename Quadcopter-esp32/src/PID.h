@@ -12,7 +12,7 @@ typedef enum {
 
 typedef struct PID_orientation_t {
     uint8_t pin;
-    float throttle, base_throttle; 
+    float throttle, base_throttle, min_throttle, max_throttle; 
     float Kp, Ki, IX, IY, IZ;
     float rX, rY, rZ; // in rad
     long t_prev;

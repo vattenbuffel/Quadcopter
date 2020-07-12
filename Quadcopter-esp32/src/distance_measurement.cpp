@@ -48,23 +48,18 @@ void distance_measurement_task(void* pvParameters){
 
     // Make sure wire is available before reading
     xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-    // printf("distance took lock\n");
-    float distance_m = distance_sensor.readRangeContinuousMillimeters() / 1000.f; // Convert mm to m
+    height_type distance_m = distance_sensor.readRangeContinuousMillimeters() / 1000.f; // Convert mm to m
     xSemaphoreGive(wire_lock_distance);
-    // printf("read distance: %f\n", distance_m);
 
     // If the read distance is too big, i.e. the quad is too high or the measurement freaks out up set the read value to a safe value rather than the max which it's output as.
     if (distance_m > DISTANCE_MEASUREMENT_OOR_VALUE) distance_m = DISTANCE_MEASUREMENT_OOR_VALUE;
 
     //Calculate how high above ground the quadcopter is
-    //printf("Cur X: %f\n", get_X());
-    //printf("Cur Y: %f\n", get_Y());
-    float height_m = distance_m * cos(get_X())*cos(get_Y());  
-    //printf("height: %f\n", height_m);
+    height_type height_m = distance_m * cos(get_X())*cos(get_Y());  
+
+    height_m = 1;
     xQueueOverwrite(distance_queue__, &height_m);
 
-    // xSemaphoreGive(wire_lock_distance);
-    // printf("distance gave lock\n");
     
   
     vTaskDelay(1.0/DISTANCE_MEASUREMENT_HZ *1000 / portTICK_RATE_MS);
