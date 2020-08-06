@@ -14,22 +14,21 @@ unsigned long last_update_filter;
 
 
 void compensate(){
-  accelZ = accelZ - 0.18;
-  accelY = accelY + 0.09;
-  accelX = accelX + 0.07;
+  accelZ = accelZ;
+  accelY = accelY + 0.0039;
+  accelX = accelX + 0.02;
   
-  float tmp = accelX;
-  accelX = accelY;
-  accelY = -tmp;
+  accelX = accelX;
+  accelY = -accelY;
+  accelZ = -accelZ;
 
   
-  gyroX = gyroX + 1.2;
-  gyroZ = gyroZ - 0.6;
+  gyroX = gyroX - 0.3;
+  gyroZ = gyroZ;
 
-  tmp = gyroX;
-  gyroX = gyroY*-1;
-  gyroY = tmp;
-  gyroZ = gyroZ*-1;
+  gyroX = -gyroX*0;
+  gyroY = gyroY*0;
+  gyroZ = gyroZ*0;
 }
 
 void complementary_filter(){
@@ -84,7 +83,6 @@ void update_filter(){
 
   // Make sure wire is available
   xSemaphoreTake(wire_lock_filter, portMAX_DELAY);
-  // printf("filter took lock\n");
 
   // check if there's new data
   if (mySensor.accelUpdate() != 0 || mySensor.gyroUpdate() != 0){
@@ -101,11 +99,9 @@ void update_filter(){
   gyroZ = mySensor.gyroZ();
   xSemaphoreGive(wire_lock_filter);
 
+  // Take the readings and convert them into the wanted coordinate frame
   compensate();
   complementary_filter();
-  // printf("filter gave lock\n");
-
-  
 }
 
 float get_X(){return X;}
