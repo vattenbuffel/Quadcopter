@@ -23,7 +23,7 @@ void command_read_data()
     if (SerialBT.available())
     {
         int data = SerialBT.read();
-        if (!(data == 13 || data == 10))
+        if (!(data == 13 || data == 10)) // Should there be {} here?
             data -= 48; // Ugly conversion from ascii to numbers
             xQueueSend(command_queuee, &data, 0); // Add the sent data to the command_queue. 
     }

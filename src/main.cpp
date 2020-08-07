@@ -61,13 +61,13 @@ void loop(){
   //if(xQueueReceive(distance_queue, &height, 0) == pdTRUE) printf("distance: %f\n", height);
   //if(xQueueReceive(command_queue,  &data, 0) == pdTRUE) printf("command: %d\n", data);
 
-  update_filter();
-  Serial.print("X :");
-  Serial.print(radToDeg(get_X()));
-  Serial.print("  Y :");
-  Serial.print(radToDeg(get_Y()));
-  Serial.print("  Z :");
-  Serial.println(radToDeg(get_Z()));
+  // update_filter();
+  // Serial.print("X :");
+  // Serial.print(radToDeg(get_X()));
+  // Serial.print("  Y :");
+  // Serial.print(radToDeg(get_Y()));
+  // Serial.print("  Z :");
+  // Serial.println(radToDeg(get_Z()));
   
   //controller_update();
  
