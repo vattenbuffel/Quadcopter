@@ -1,3 +1,43 @@
-Cable : Motor : Pin
-Orange : SE : 15
-White : NW
+Cable color  : Motor : Pin
+White        : NW    : 15
+Blue/Green   : NE    : 2
+Orange/Blue  : SE    : 4
+White/Yellow : SW    : 0
+
+
+
+UNKOWN
+red:black
+blue:blue
+black:red
+
+red:black
+blue:red
+black:blue
+
+red:blue
+blue:red
+black:black
+
+red:black
+black:red
+blue:blue
+
+red:red
+blue:blue
+black:black
+
+red:red
+blue:black
+black:blue
+
+
+
+CW
+
+CCW
+
+
+
+
+NOK

@@ -89,7 +89,6 @@ void controller_update(){
 }
 
 void controller_actuate_motors(){
-
     // This is to make sure that the heartbeat signal has arrived in time. If not, stop the motors
     if (1.0 / CONTROLLER_HEARTBEAT_HZ * 1000 + heart_beat_time < millis() || stop){
         printf("STOP\n");
@@ -105,7 +104,6 @@ void controller_actuate_motors(){
     ESC_SE.writeMicroseconds(pid_SE.throttle + 1000.f);
     ESC_SW.writeMicroseconds(pid_SW.throttle + 1000.f);
     ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
-    printf("Throttles: %f %f \n", pid_SE.throttle + 1000.f, pid_NW.throttle + 1000.f);
 }
 
 void controller_update_orientation(){
@@ -164,6 +162,7 @@ void controller_command_handler_task(void* pvParameter){
         xQueueReceive(command_queue, &command, portMAX_DELAY);
         heart_beat_time = millis();
 
+        // This should be changed to a switch statement
         if(command == command_left){
             controller_set_ref_orientation(pid_NE.rX - CONTROLLER_ORIENTATION_CHANGE, pid_NE.rY, 0);
         }        

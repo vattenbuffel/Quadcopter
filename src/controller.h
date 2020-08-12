@@ -1,10 +1,10 @@
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 
-#define NE_PIN 0
-#define SE_PIN 15
-#define SW_PIN 2
-#define NW_PIN 4
+#define NE_PIN 2
+#define SE_PIN 4
+#define SW_PIN 0
+#define NW_PIN 15
 
 
 #define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
