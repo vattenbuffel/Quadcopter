@@ -38,48 +38,37 @@ void setup(){
   // distance_measurement_init(distance_queue, wire_lock);
   
   
-  // controller_init(distance_queue, command_queue);
+  controller_init(distance_queue, command_queue);
   
 
-  // Servo test_motor0, test_motor15, test_motor2, test_motor4;
-  // if(!test_motor0.attach(0, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
-  // if(!test_motor15.attach(15, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
-  // if(!test_motor2.attach(2, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
-  // if(!test_motor4.attach(4, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
-  // test_motor0.writeMicroseconds(1000);
-  // test_motor15.writeMicroseconds(1000);
-  // test_motor2.writeMicroseconds(1000);
-  // test_motor4.writeMicroseconds(1000);
-  // delay(500);
+  Servo test_motor0, test_motor15, test_motor2, test_motor4;
+  if(!test_motor0.attach(0, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
+  if(!test_motor15.attach(15, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
+  if(!test_motor2.attach(2, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
+  if(!test_motor4.attach(4, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
+  test_motor0.writeMicroseconds(1000);
+  test_motor15.writeMicroseconds(1000);
+  test_motor2.writeMicroseconds(1000);
+  test_motor4.writeMicroseconds(1000);
+  delay(500);
   
-  // for (;;) {
-  //   printf("MAX!\n");
-  //   test_motor0.writeMicroseconds(1100);
-  //   // test_motor2.writeMicroseconds(2000);
-  //   // test_motor15.writeMicroseconds(2000);
-  //   // test_motor4.writeMicroseconds(2000);
-  //   delay(100000000);
+  for (;;) {
+    printf("MAX!\n");
+    // test_motor0.writeMicroseconds(1100);
+    // test_motor2.writeMicroseconds(1050);
+    test_motor15.writeMicroseconds(2000);
+    // test_motor4.writeMicroseconds(1050);
+    delay(100000000);
 
-  //   printf("MIN!\n");
-  //   test_motor0.writeMicroseconds(1000);
-  //   test_motor15.writeMicroseconds(1000);
-  //   test_motor2.writeMicroseconds(1000);
-  //   test_motor4.writeMicroseconds(1000);
-  //   delay(100);
-  // }
+    printf("MIN!\n");
+    test_motor0.writeMicroseconds(1000);
+    test_motor15.writeMicroseconds(1000);
+    test_motor2.writeMicroseconds(1000);
+    test_motor4.writeMicroseconds(1000);
+    delay(100);
+  }
 
-  // Servo test_motor0;
-  // if(!test_motor0.attach(0, -1, 0, 180, 1000, 2000)) printf("Faulty servo pin\n");
-  // for (;;) {
-  //   printf("MAX!\n");
-  //   test_motor0.writeMicroseconds(2000);
-  //   delay(7000);
-
-  //   printf("MIN!\n");
-  //   test_motor0.writeMicroseconds(1000);
-  //   delay(100000000);
-    
-  // }
+  
 
 }
 

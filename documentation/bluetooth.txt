@@ -9,5 +9,5 @@ Commands:
 	Start: 5 : Stops or starts the motors 
 	Square: 6 : Heartbeat. If it doesn't receive a heartbeat command or any other command in too long the quad will shutdown. This is to stop the quad from going to far away from the controller
 	Triangle: 7 : Increase base_thrust
-	Cross: 8 : Motor tuning
+	Cross: 8 : ESC/motor calibration
 	Circle: 9 : Decrease base_thrust

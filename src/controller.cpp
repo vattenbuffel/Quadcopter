@@ -9,8 +9,11 @@ Servo ESC_NE, ESC_SE, ESC_SW, ESC_NW;
 PID_height_t pid_height;
 
 unsigned long heart_beat_time;
-bool stop;
+bool stop, calibration_active;
 float bluetooth_base_throttle;
+
+static TaskHandle_t motor_calibration_handle = NULL;
+
 
 // Private functions
 void controller_update_orientation();
@@ -19,11 +22,14 @@ void controller_set_base_throtle_orientation(float base_throttle);
 void controller_set_ref_orientation(float rX, float rY, float rZ);
 void controller_reset_controllers();
 void controller_command_handler_task(void* pvParameter);
+void controller_motor_calibration_handler();
+void controller_motor_calibration_task(void* pvParameter);
 
 
 
 void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue){
     stop = true;
+    calibration_active = false;
     heart_beat_time = millis();
     bluetooth_base_throttle = 0;
 
@@ -78,9 +84,12 @@ void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue){
   xTaskCreatePinnedToCore(controller_command_handler_task, "Command_handler_controller", configMINIMAL_STACK_SIZE*5, (void*)command_queue, 1, NULL, 0);
 }
 
-
-
 void controller_update(){
+    if(calibration_active){
+        // printf("Calibration in progress. Can't update controller. \n");
+        return;
+    }
+
     update_throttle(&pid_height);
     controller_set_base_throtle_orientation(pid_height.base_throttle + bluetooth_base_throttle);
     controller_update_orientation();
@@ -120,7 +129,6 @@ void controller_set_base_throtle_orientation(float base_throttle){
     change_base_throttle(&pid_NW, pid_height.base_throttle);
 }
 
-
 void controller_set_ref_orientation(float rX, float rY, float rZ){
     change_ref(&pid_NE, rX, rY, rZ);
     change_ref(&pid_SE, rX, rY, rZ);
@@ -152,6 +160,46 @@ void controller_reset_controllers(){
     change_ref(&pid_height, 0);
 }
 
+void controller_motor_calibration_handler(){
+    if(motor_calibration_handle == NULL){
+        xTaskCreatePinnedToCore(controller_motor_calibration_task, "motor_calibration", configMINIMAL_STACK_SIZE*5, NULL, 1, &motor_calibration_handle, 0);
+        return;
+    }
+
+    xTaskNotify(motor_calibration_handle, 0, eNoAction);
+}
+
+// Tunes the ESC/motors
+void controller_motor_calibration_task(void* pvParameter){
+    for(;;){
+        // Stop the motors and activate calibration mode
+        stop = true;
+        calibration_active = true;
+
+
+        printf("MOTOR/ESC CALIBRATION INSTRUCTIONS: \n1) Unplug battery. \n2) Press the calibration button again. \n3) Plug the battery in again. \n4) Wait for the motors to rapidly beep twice then press calibration button again. \n5) That's it. Preferably restart the mcu. \n");
+
+        // Set throttle high
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        ESC_NE.writeMicroseconds(2000.f);
+        ESC_SE.writeMicroseconds(2000.f);
+        ESC_SW.writeMicroseconds(2000.f);
+        ESC_NW.writeMicroseconds(2000.f);
+        printf("\n\n\n\n\n\n\nPlug in the battery.\nOnce two rapid beeps are heard press calibration button again.\n");
+
+        // Set throttle low
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        ESC_NE.writeMicroseconds(1000.f);
+        ESC_SE.writeMicroseconds(1000.f);
+        ESC_SW.writeMicroseconds(1000.f);
+        ESC_NW.writeMicroseconds(1000.f);
+
+        printf("\n\n\n\n\n\n\nDone with calibration.\nYou should now restart the mcu.\n");
+        delay(5000);
+        calibration_active = false;
+        vTaskDelete(NULL);
+    }
+}
 
 // Handles the commands which are sent over bluetooth
 void controller_command_handler_task(void* pvParameter){
@@ -188,7 +236,7 @@ void controller_command_handler_task(void* pvParameter){
             bluetooth_base_throttle += CONTROLLER_BASE_THROTTLE_CHANGE;
         }
         else if(command == command_cross){
-            //Unused
+            controller_motor_calibration_handler();
         }
         else if(command == command_circle){
             bluetooth_base_throttle -= CONTROLLER_BASE_THROTTLE_CHANGE;

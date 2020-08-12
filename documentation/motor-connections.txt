@@ -15,27 +15,28 @@ red:black
 blue:red
 black:blue
 
-red:blue
-blue:red
-black:black
 
 red:black
 black:red
 blue:blue
 
-red:red
-blue:blue
-black:black
 
 red:red
 blue:black
 black:blue
+
+red:blue
+blue:red
+black:black
 
 
 
 CW
 
 CCW
+red:red
+blue:blue
+black:black
 
 
 
