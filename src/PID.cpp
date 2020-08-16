@@ -34,6 +34,8 @@ void update_throttle(PID_orientation_t* pid){
     }
     
     pid->throttle = throttle;
+
+    limit_throttle(pid);
 }
 
 void limit_throttle(PID_orientation_t* pid){
@@ -65,7 +67,7 @@ void update_throttle(PID_height_t* pid){
 
     if(xQueueReceive(pid->distance_queue, &current_height, 0) == pdFALSE) return;
     
-    float e = current_height/100.f - pid->r;
+    float e = current_height/100.f - pid->r; // Why div by 100? It's already m right?
 
     float dt = (micros() - pid->t_prev)/(1000000.f);
     pid->t_prev = micros();

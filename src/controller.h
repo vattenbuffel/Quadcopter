@@ -6,6 +6,9 @@
 #define SW_PIN 0
 #define NW_PIN 15
 
+#define CONTROLLER_PID_P 2000
+#define CONTROLLER_PID_I 1000
+
 
 #define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
 #define radToDeg(angleInRadians) ((angleInRadians) * 180.0 / M_PI)

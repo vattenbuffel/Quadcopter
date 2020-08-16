@@ -37,8 +37,8 @@ void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue){
     pid_NE.pos = POS_NE;
     pid_NE.t_prev = micros();
     pid_NE.rZ = pid_NE.rY = pid_NE.rX = 0;
-    pid_NE.Ki = 1000;
-    pid_NE.Kp = 2000;
+    pid_NE.Ki = CONTROLLER_PID_I;
+    pid_NE.Kp = CONTROLLER_PID_P;
     pid_NE.IX = pid_NE.IY = pid_NE.IZ = 0;
     pid_NE.base_throttle = 0;
     pid_NE.max_throttle = CONTROLLER_MAX_THROTTLE;
