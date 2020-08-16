@@ -34,7 +34,7 @@ void update_throttle(PID_orientation_t* pid){
     }
     
     pid->throttle = throttle;
-
+    
     limit_throttle(pid);
 }
 

@@ -6,15 +6,17 @@
 #define SW_PIN 0
 #define NW_PIN 15
 
-#define CONTROLLER_PID_P 2000
-#define CONTROLLER_PID_I 1000
+#define CONTROLLER_PID_ORIENTATION_P 250
+#define CONTROLLER_PID_ORIENTATION_I 0
+#define CONTROLLER_PID_HEIGHT_P 1
+#define CONTROLLER_PID_HEIGHT_I 1
 
 
 #define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
 #define radToDeg(angleInRadians) ((angleInRadians) * 180.0 / M_PI)
 
 // These are parameters for the bluetooth controller
-#define CONTROLLER_ORIENTATION_CHANGE radToDeg(1)
+#define CONTROLLER_ORIENTATION_CHANGE degToRad(1)
 #define CONTROLLER_BASE_THROTTLE_CHANGE 1
 #define CONTROLLER_HEARTBEAT_HZ 0.05
 
