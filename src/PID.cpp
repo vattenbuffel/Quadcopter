@@ -6,35 +6,51 @@
 void update_throttle(PID_orientation_t* pid){
     // Ignore Z for now
 
+    // Calc error
     float eX = pid->rX - get_X();
     float eY = pid->rY - get_Y();
 
+    // Calc time since last update
     float dt = (micros() - pid->t_prev)/(1000000.f);
     pid->t_prev = micros();
 
-    float throttle = pid->base_throttle;
+    
+    // Calc I
     pid->IX += eX*dt;
     pid->IY += eY*dt;
 
+    // Calc D
+    float DX = (eX - pid->e_prev_X)/dt;
+    float DY = (eY - pid->e_prev_Y)/dt;
+    pid->e_prev_X = eX;
+    pid->e_prev_Y = eY;
+
+    // Calc throttle with controller placement in mind
+    float throttle = pid->base_throttle;
     if (pid->pos == POS_NE){
         throttle += -pid->Kp*eX - pid->Kp*eY;
         throttle += -pid->Ki*pid->IX - pid->Ki*pid->IY;
+        throttle += -pid->Kd*DX - pid->Kd*DY;
     }
     else if(pid->pos == POS_SE){
         throttle += -pid->Kp*eX + pid->Kp*eY;
         throttle += -pid->Ki*pid->IX + pid->Ki*pid->IY;
+        throttle += -pid->Kd*DX + pid->Kd*DY;
     }
     else if(pid->pos == POS_SW){
         throttle += pid->Kp*eX + pid->Kp*eY;
         throttle += pid->Ki*pid->IX + pid->Ki*pid->IY;
+        throttle += pid->Kd*DX + pid->Kd*DY;
     }
     else if(pid->pos == POS_NW){
         throttle += pid->Kp*eX - pid->Kp*eY;
         throttle += pid->Ki*pid->IX - pid->Ki*pid->IY;
+        throttle += pid->Kd*DX - pid->Kd*DY;
     }
     
     pid->throttle = throttle;
-    
+
+
     limit_throttle(pid);
 }
 

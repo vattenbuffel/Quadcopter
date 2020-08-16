@@ -80,6 +80,12 @@ void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue){
     pid_height.r = 1;
     pid_height.t_prev = micros();
 
+
+    //TEMP
+    pid_height.base_throttle = 100;
+    ////////////
+
+
   // Start the command handler so that the quad can be controlled via bluetooth 
   xTaskCreatePinnedToCore(controller_command_handler_task, "Command_handler_controller", configMINIMAL_STACK_SIZE*5, (void*)command_queue, 1, NULL, 0);
 }
@@ -113,6 +119,8 @@ void controller_actuate_motors(){
     ESC_SE.writeMicroseconds(pid_SE.throttle + 1000.f);
     ESC_SW.writeMicroseconds(pid_SW.throttle + 1000.f);
     ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
+    // printf("NE_THROTTLE: %f\n", pid_NE.throttle);
+    // printf("NE_BASE_THROTTLE: %f\n", pid_NE.base_throttle);
 }
 
 void controller_update_orientation(){
@@ -175,6 +183,10 @@ void controller_motor_calibration_task(void* pvParameter){
         // Stop the motors and activate calibration mode
         stop = true;
         calibration_active = true;
+        ESC_NE.writeMicroseconds(1000.f);
+        ESC_SE.writeMicroseconds(1000.f);
+        ESC_SW.writeMicroseconds(1000.f);
+        ESC_NW.writeMicroseconds(1000.f);
 
 
         printf("MOTOR/ESC CALIBRATION INSTRUCTIONS: \n1) Unplug battery. \n2) Press the calibration button again. \n3) Plug the battery in again. \n4) Wait for the motors to rapidly beep twice then press calibration button again. \n5) That's it. Preferably restart the mcu. \n");

@@ -50,7 +50,7 @@ void loop(){
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
   
-  if(pdTRUE == xSemaphoreGive(orientation_updated))
+  if(pdTRUE == xSemaphoreTake(orientation_updated, 0))
     controller_update();
  
 }
