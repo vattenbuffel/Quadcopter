@@ -1,7 +1,7 @@
 # Quadcopter
-Manish and Noa's autonomous quadcopter.
+Noa's autonomous floating quadcopter.
 
 
 # Instructions
-Here's the instructions to use this code.
+Here are the instructions to use this code.
 More to be added.
