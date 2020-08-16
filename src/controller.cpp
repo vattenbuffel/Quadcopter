@@ -169,7 +169,7 @@ void controller_motor_calibration_handler(){
     xTaskNotify(motor_calibration_handle, 0, eNoAction);
 }
 
-// Tunes the ESC/motors
+// Calibrates the ESC/motors
 void controller_motor_calibration_task(void* pvParameter){
     for(;;){
         // Stop the motors and activate calibration mode

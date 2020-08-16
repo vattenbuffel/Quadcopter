@@ -23,8 +23,8 @@ void compensate(){
   accelY = accelY + 0.0039;
   accelX = accelX + 0.02;
   
-  accelX = accelX;
-  accelY = -accelY;
+  accelX = -accelX;
+  accelY = accelY;
   accelZ = -accelZ;
 
   
