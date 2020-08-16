@@ -11,9 +11,11 @@
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
 
+// Lock for the complementary filter to give when it is done updating the orientation 
+xSemaphoreHandle orientation_updated;
 xSemaphoreHandle wire_lock;
 
-
+ 
 void setup(){
   Serial.begin(115200);
   Wire.begin();
@@ -21,15 +23,15 @@ void setup(){
   printf("\nStarted!\n");
   
   wire_lock = xSemaphoreCreateBinary();
+  orientation_updated = xSemaphoreCreateBinary();
   xSemaphoreGive(wire_lock);
-  init_mpu(wire_lock);
+  init_mpu(wire_lock, orientation_updated);
   
   command_queue = xQueueCreate(10, sizeof(int));
   command_init(command_queue);
 
   distance_queue = xQueueCreate(1, sizeof(height_type));
   // distance_measurement_init(distance_queue, wire_lock);
-  
   
   controller_init(distance_queue, command_queue);
 }
@@ -48,7 +50,8 @@ void loop(){
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
   
-  controller_update();
+  if(pdTRUE == xSemaphoreGive(orientation_updated))
+    controller_update();
  
 }
 

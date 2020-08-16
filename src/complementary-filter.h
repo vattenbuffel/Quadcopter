@@ -14,7 +14,7 @@ void complementary_filter();
 float get_X();
 float get_Y();
 float get_Z();
-void init_mpu(xSemaphoreHandle wire_lock);
+void init_mpu(xSemaphoreHandle wire_lock, xSemaphoreHandle orientation_updated);
 void update_filter();
 
 #endif //COMPLEMENTARY_FILTER_H_

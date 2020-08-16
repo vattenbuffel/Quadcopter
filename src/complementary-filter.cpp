@@ -5,7 +5,7 @@
 #define g -9.81
 
 MPU9250_asukiaaa mySensor;
-xSemaphoreHandle wire_lock_filter, XYZ_lock;
+xSemaphoreHandle wire_lock_filter, XYZ_lock, orientation_updated_filter;
 float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY, mZ;
 
 float X = 0;
@@ -76,8 +76,9 @@ void complementary_filter(){
   xSemaphoreGive(XYZ_lock);
 }
 
-void init_mpu(xSemaphoreHandle wire_lock){
+void init_mpu(xSemaphoreHandle wire_lock, xSemaphoreHandle orientation_updated){
   wire_lock_filter = wire_lock;
+  orientation_updated_filter = orientation_updated;
   last_update_filter = millis();
   mySensor.setWire(&Wire);
   mySensor.beginAccel();
@@ -116,6 +117,7 @@ void update_filter(){
   // Take the readings and convert them into the wanted coordinate frame
   compensate();
   complementary_filter();
+  xSemaphoreGive(orientation_updated_filter);
 }
 
 float get_X(){
