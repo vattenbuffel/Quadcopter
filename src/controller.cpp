@@ -125,6 +125,7 @@ void controller_actuate_motors() {
   // stop the motors
   if (1.0 / CONTROLLER_HEARTBEAT_HZ * 1000 + heart_beat_time < millis() ||
       stop) {
+    stop = true;
     printf("STOP\n");
     ESC_NE.writeMicroseconds(1000);
     ESC_SE.writeMicroseconds(1000);
@@ -138,8 +139,6 @@ void controller_actuate_motors() {
   ESC_SE.writeMicroseconds(pid_SE.throttle + 1000.f);
   ESC_SW.writeMicroseconds(pid_SW.throttle + 1000.f);
   ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
-  // printf("NE_THROTTLE: %f\n", pid_NE.throttle);
-  // printf("NE_BASE_THROTTLE: %f\n", pid_NE.base_throttle);
 }
 
 void controller_update_orientation() {
@@ -202,6 +201,7 @@ PID_orientation_t controller_get_NW() { return pid_NW; }
 PID_orientation_t controller_get_NE() { return pid_NE; }
 PID_orientation_t controller_get_SW() { return pid_SW; }
 PID_orientation_t controller_get_SE() { return pid_SE; }
+bool controller_stopped(){return stop;}
 
 // Calibrates the ESC/motors
 void controller_motor_calibration_task(void *pvParameter) {

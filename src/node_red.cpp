@@ -11,6 +11,7 @@ void node_red_publisher_task(void *);
 void node_red_starter_task(void *);
 
 // Fix so that it can receive messages
+// Maybe implement stop if X/Y go too weird?
 
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
@@ -125,18 +126,24 @@ void node_red_starter_task(void *) {
                           "node-red-controller-publish-task",
                           configMINIMAL_STACK_SIZE * 10, NULL, 1, NULL, 1);
 
-  for (;;)
-    vTaskDelay(10000000);
-  // vTaskDelete(NULL);
+  vTaskDelete(NULL);
 }
 
 void node_red_publisher_task(void *) {
   for (;;) {
-    if (publish_task_publish) {
+    if (publish_task_publish && !controller_stopped()) {
       node_red_publish_controller_info();
+      // printf("published\n");
     }
     vTaskDelay(1.f / NODE_RED_PUBLISH_HZ * 1000);
   }
+}
+
+void node_red_stop_publishing_controller_info() {
+  publish_task_publish = false;
+}
+void node_red_start_publishing_controller_info() {
+  publish_task_publish = true;
 }
 
 // This code is not good as it will block the core from running other code

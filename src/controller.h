@@ -6,9 +6,9 @@
 #define SW_PIN 0
 #define NW_PIN 15
 
-#define CONTROLLER_PID_ORIENTATION_P 100
+#define CONTROLLER_PID_ORIENTATION_P 50
 #define CONTROLLER_PID_ORIENTATION_I 50
-#define CONTROLLER_PID_ORIENTATION_D 20
+#define CONTROLLER_PID_ORIENTATION_D 10
 #define CONTROLLER_PID_HEIGHT_P 1
 #define CONTROLLER_PID_HEIGHT_I 1
 
@@ -46,5 +46,6 @@ PID_orientation_t controller_get_NW();
 PID_orientation_t controller_get_NE();
 PID_orientation_t controller_get_SW();
 PID_orientation_t controller_get_SE();
+bool controller_stopped();
 
 #endif // CONTROLLER_H_

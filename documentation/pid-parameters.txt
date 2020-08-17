@@ -1,0 +1,6 @@
+Best so far:
+P: 50
+I: 50
+D: 10
+
+These were tested with a fully charged battery. About 12.5 V
