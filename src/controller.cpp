@@ -121,11 +121,6 @@ void controller_actuate_motors(){
     ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
     // printf("NE_THROTTLE: %f\n", pid_NE.throttle);
     // printf("NE_BASE_THROTTLE: %f\n", pid_NE.base_throttle);
-    
-    char number_c[50];
-    sprintf(number_c, "%f", pid_NE.throttle);
-    node_red_publish("NW", number_c);
-    printf("SHOULD PUBLISH\n");
 }
 
 void controller_update_orientation(){
