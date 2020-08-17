@@ -5,15 +5,13 @@
 #define DISTANCE_MEASUREMENT_OOR_VALUE 1.5
 #define DISTANCE_MEASUREMENT_TIME_OUT_MS 1000
 
-
 #include "FreeRTOS.h"
 
 typedef float height_type;
 
-void distance_measurement_init(QueueHandle_t distance_queue, xSemaphoreHandle wire_lock);
-
-
+void distance_measurement_init(QueueHandle_t distance_queue,
+                               xSemaphoreHandle wire_lock);
 
 #include "Arduino.h"
 
-#endif //DISTANCE_MEASUREMENT_H_
+#endif // DISTANCE_MEASUREMENT_H_

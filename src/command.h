@@ -6,8 +6,7 @@
 
 #include "FreeRTOS.h"
 
-
 void command_init(QueueHandle_t command_queue_);
-void command_task(void* pvParameters);
+void command_task(void *pvParameters);
 
-#endif //COMMAND_H_
+#endif // COMMAND_H_

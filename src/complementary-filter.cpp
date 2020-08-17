@@ -1,12 +1,13 @@
 #include "complementary-filter.h"
-#include <MPU9250_asukiaaa.h>
 #include "FreeRTOS.h"
+#include <MPU9250_asukiaaa.h>
 
 #define g -9.81
 
 MPU9250_asukiaaa mySensor;
 xSemaphoreHandle wire_lock_filter, XYZ_lock, orientation_updated_filter;
-float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY, mZ;
+float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY,
+    mZ;
 
 float X = 0;
 float Y = 0;
@@ -18,16 +19,15 @@ void set_X(float);
 void set_Y(float);
 void set_Z(float);
 
-void compensate(){
+void compensate() {
   accelZ = accelZ;
   accelY = accelY + 0.0039;
   accelX = accelX + 0.02;
-  
+
   accelX = -accelX;
   accelY = accelY;
   accelZ = -accelZ;
 
-  
   gyroX = gyroX - 0.3;
   gyroZ = gyroZ;
 
@@ -36,37 +36,31 @@ void compensate(){
   gyroZ = gyroZ;
 }
 
-void complementary_filter(){
-  unsigned long start_of_complementar_filter = millis();
+void complementary_filter() {
   float h = 0.002;
   float alpha = 0.1;
-  float gamma = alpha/(h+alpha);
-  
+  float gamma = alpha / (h + alpha);
 
-  float gyrX = degToRad(gyroX)*h;
-  float gyrY = degToRad(gyroY)*h;
-  float gyrZ = degToRad(gyroZ)*h;
+  float gyrX = degToRad(gyroX) * h;
+  float gyrY = degToRad(gyroY) * h;
+  float gyrZ = degToRad(gyroZ) * h;
 
-  
-
-  // Add previous estimated angles to gyro estimated angle change and multiply with gamma
+  // Add previous estimated angles to gyro estimated angle change and multiply
+  // with gamma
   gyrX = (gyrX + X) * gamma;
   gyrY = (gyrY + Y) * gamma;
-  gyrZ = (gyrZ + Z) * 0.99; //Forgetting factor
+  gyrZ = (gyrZ + Z) * 0.99; // Forgetting factor
 
-  //Convert acc to rad
-  float accX = accelX*g;
-  float accY = accelY*g;
-  float accZ = accelZ*g;
-  
+  // Convert acc to rad
+  float accX = accelX * g;
+  float accY = accelY * g;
+  float accZ = accelZ * g;
 
-  float phi = atan2( accY, accZ);
-  float theta = atan2( -accX, sqrt( pow(accY, 2) + pow(accZ, 2) ));
-  
+  float phi = atan2(accY, accZ);
+  float theta = atan2(-accX, sqrt(pow(accY, 2) + pow(accZ, 2)));
 
-  phi = phi*(1-gamma);
-  theta = theta*(1-gamma);
-  
+  phi = phi * (1 - gamma);
+  theta = theta * (1 - gamma);
 
   // Add the estimations of the gyro and accelerometer
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
@@ -76,7 +70,8 @@ void complementary_filter(){
   xSemaphoreGive(XYZ_lock);
 }
 
-void init_mpu(xSemaphoreHandle wire_lock, xSemaphoreHandle orientation_updated){
+void init_mpu(xSemaphoreHandle wire_lock,
+              xSemaphoreHandle orientation_updated) {
   wire_lock_filter = wire_lock;
   orientation_updated_filter = orientation_updated;
   last_update_filter = millis();
@@ -89,23 +84,24 @@ void init_mpu(xSemaphoreHandle wire_lock, xSemaphoreHandle orientation_updated){
   xSemaphoreGive(XYZ_lock);
 }
 
-void update_filter(){
+void update_filter() {
   // Check if it's time to update
-  if(last_update_filter + 1.f / FILTER_UPDATE_HZ * 1000 > millis())
+  if (last_update_filter + 1.f / FILTER_UPDATE_HZ * 1000 > millis())
     return;
-    
+
   // Make sure wire is available
   xSemaphoreTake(wire_lock_filter, portMAX_DELAY);
-  
+
   last_update_filter = millis();
-  
+
   // check if there's new data
-  if (mySensor.accelUpdate() != 0 || mySensor.gyroUpdate() != 0){
+  if (mySensor.accelUpdate() != 0 || mySensor.gyroUpdate() != 0) {
     xSemaphoreGive(wire_lock_filter);
     return;
   }
-  
-  // It's time to update, wire is available and there is new data. Estimate orientation
+
+  // It's time to update, wire is available and there is new data. Estimate
+  // orientation
   accelX = mySensor.accelX();
   accelY = mySensor.accelY();
   accelZ = mySensor.accelZ();
@@ -120,40 +116,40 @@ void update_filter(){
   xSemaphoreGive(orientation_updated_filter);
 }
 
-float get_X(){
+float get_X() {
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   float tmp = X;
   xSemaphoreGive(XYZ_lock);
   return tmp;
 }
 
-float get_Y(){  
+float get_Y() {
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   float tmp = Y;
   xSemaphoreGive(XYZ_lock);
   return tmp;
 }
 
-float get_Z(){
+float get_Z() {
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   float tmp = Z;
   xSemaphoreGive(XYZ_lock);
   return tmp;
 }
 
-void set_X(float tmp){
+void set_X(float tmp) {
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   X = tmp;
   xSemaphoreGive(XYZ_lock);
 }
 
-void set_Y(float tmp){
+void set_Y(float tmp) {
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   Y = tmp;
   xSemaphoreGive(XYZ_lock);
 }
 
-void set_Z(float tmp){
+void set_Z(float tmp) {
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   Z = tmp;
   xSemaphoreGive(XYZ_lock);
