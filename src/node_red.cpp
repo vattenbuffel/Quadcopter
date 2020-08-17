@@ -120,7 +120,7 @@ void node_red_starter_task(void*){
   printf("Connected to broker\n");
   printf("Node red started\n");
 
-  mqtt_client.subscribe(NODE_RED_ENABLE_TOPIC);
+  mqtt_client.subscribe(NODE_RED_ENABLE_TOPIC, 1); // Can only subscribe at 0 or 1
   node_red_publish("NW", "HELLO WORLD");
   xTaskCreatePinnedToCore(node_red_publisher_task, "node-red-controller-publish-task", configMINIMAL_STACK_SIZE*10, NULL,  1, NULL, 1);
   

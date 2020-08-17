@@ -2,7 +2,7 @@
 #define NODE_RED_H_
 
 #define NODE_RED_CONNECT_ATTEMPT_MAX 5
-#define NODE_RED_PUBLISH_HZ 50
+#define NODE_RED_PUBLISH_HZ 20
 #define NODE_RED_ENABLE_TOPIC "mqtt-enable-output"
 
 void node_red_start();
