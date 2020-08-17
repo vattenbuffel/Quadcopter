@@ -5,3 +5,4 @@ include
 lib
 test
 .gitignore
+/src/confidential.h

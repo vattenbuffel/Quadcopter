@@ -7,6 +7,11 @@
 #include "PID.h"
 #include <Servo.h>
 #include <Wire.h>
+#include "node_red.h"
+
+// This dictates if data should be published on node-red
+#define NODE_RED
+
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
@@ -34,6 +39,10 @@ void setup(){
   // distance_measurement_init(distance_queue, wire_lock);
   
   controller_init(distance_queue, command_queue);
+
+  #ifdef NODE_RED
+    node_red_start();
+  #endif // NODE_RED
 }
 
 void loop(){
@@ -50,8 +59,9 @@ void loop(){
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
   
-  if(pdTRUE == xSemaphoreTake(orientation_updated, 0))
-    controller_update();
+  if(pdTRUE == xSemaphoreTake(orientation_updated, 0)){
+    // controller_update();
+  }
  
 }
 

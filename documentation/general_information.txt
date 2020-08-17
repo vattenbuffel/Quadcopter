@@ -2,11 +2,12 @@ core1 = general stuff
 core0 = High priority stuff
 
 
-Core1 is/should run:
+Core1 should run:
 	Receiving commands via bluetooth
 	Measure distance to ground
+	node-red communication
 
-Core0 is/should run:
+Core0 should run:
 	Handling the commands, i.e. changing the reference values
 	Complementary filter
 	PID-controller

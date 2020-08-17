@@ -1,7 +1,7 @@
 #include "PID.h"
 #include <Servo.h>
 #include "controller.h"
-
+#include "node_red.h"
 
 PID_orientation_t pid_NE, pid_SE, pid_SW, pid_NW;
 Servo ESC_NE, ESC_SE, ESC_SW, ESC_NW;
@@ -82,7 +82,7 @@ void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue){
 
 
     //TEMP
-    pid_height.base_throttle = 100;
+    pid_height.base_throttle = 300;
     ////////////
 
 
@@ -121,6 +121,11 @@ void controller_actuate_motors(){
     ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
     // printf("NE_THROTTLE: %f\n", pid_NE.throttle);
     // printf("NE_BASE_THROTTLE: %f\n", pid_NE.base_throttle);
+    
+    char number_c[50];
+    sprintf(number_c, "%f", pid_NE.throttle);
+    node_red_publish("NW", number_c);
+    printf("SHOULD PUBLISH\n");
 }
 
 void controller_update_orientation(){
@@ -176,6 +181,11 @@ void controller_motor_calibration_handler(){
 
     xTaskNotify(motor_calibration_handle, 0, eNoAction);
 }
+
+PID_orientation_t controller_get_NW() {return pid_NW;}
+PID_orientation_t controller_get_NE() {return pid_NE;}
+PID_orientation_t controller_get_SW() {return pid_SW;}
+PID_orientation_t controller_get_SE() {return pid_SE;}
 
 // Calibrates the ESC/motors
 void controller_motor_calibration_task(void* pvParameter){

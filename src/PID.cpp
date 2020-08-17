@@ -46,10 +46,10 @@ void update_throttle(PID_orientation_t* pid){
         throttle += pid->Kp*eX - pid->Kp*eY;
         throttle += pid->Ki*pid->IX - pid->Ki*pid->IY;
         throttle += pid->Kd*DX - pid->Kd*DY;
+        printf("Set NW to: %f\n", throttle);
     }
     
     pid->throttle = throttle;
-
 
     limit_throttle(pid);
 }
