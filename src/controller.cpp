@@ -40,6 +40,7 @@ void controller_start(QueueHandle_t distance_queue,
   pid_NE.rZ = pid_NE.rY = pid_NE.rX = 0;
   pid_NE.Ki = CONTROLLER_PID_ORIENTATION_I;
   pid_NE.Kp = CONTROLLER_PID_ORIENTATION_P;
+  pid_NE.Kd = CONTROLLER_PID_ORIENTATION_D;
   pid_NE.IX = pid_NE.IY = pid_NE.IZ = 0;
   pid_NE.base_throttle = 0;
   pid_NE.max_throttle = CONTROLLER_MAX_THROTTLE;

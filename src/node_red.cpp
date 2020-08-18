@@ -10,8 +10,9 @@
 void reconnect();
 void node_red_task(void *);
 void node_red_starter_task(void *);
+bool node_red_sub_to_topics();
+bool node_red_mqtt_connect();
 
-// Fix so that it can receive messages
 // Maybe implement stop if X/Y go too weird?
 
 WiFiClient espClient;
@@ -24,36 +25,48 @@ bool connected = false;
 bool publish_task_publish = true;
 
 void callback(char *topic, byte *message, unsigned int length) {
+  // This is needed to convert the byte message to a char message
+  char messageTemp[length];
+  for (int i = 0; i < length; i++) {
+    messageTemp[i] = (char)message[i];
+  }
+
+  // Enables or disables publising controller and complementary filter
   if (strcmp(topic, NODE_RED_ENABLE_TOPIC) == 0) {
     publish_task_publish = !publish_task_publish;
     printf("node-red publish is set to: %d\n", publish_task_publish);
-  } else if (strcmp(topic, NODE_RED_SET_ORIENTATION_P_TOPIC) == 0) {
-    float p = atof((char*)message);
-    if (controller_set_orientation_p(p))
+  }
+  // The following 3 if statments sets orientation pid parameters
+  else if (strcmp(topic, NODE_RED_SET_ORIENTATION_P_TOPIC) == 0) {
+    float p = atof(messageTemp);
+    if (controller_set_orientation_p(p)) {
       printf("Set orientation pid p to: %f.\n", p);
-    else
+    } else
       printf("Failed to set orientation pid p.\n");
+  } else if (strcmp(topic, NODE_RED_SET_ORIENTATION_I_TOPIC) == 0) {
+    float i = atof(messageTemp);
+    if (controller_set_orientation_i(i))
+      printf("Set orientation pid i to: %f.\n", i);
+    else
+      printf("Failed to set orientation pid i.\n");
+  } else if (strcmp(topic, NODE_RED_SET_ORIENTATION_D_TOPIC) == 0) {
+    float d = atof(messageTemp);
+    if (controller_set_orientation_d(d))
+      printf("Set orientation pid d to: %f.\n", d);
+    else
+      printf("Failed to set orientation pid d.\n");
+  } else if (strcmp(topic, NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND) == 0) {
+    char pid_msg[100]; // 100 is probably big enough
+    sprintf(pid_msg, "p:%f i:%f d:%f", controller_get_NW().Kp,
+            controller_get_NW().Ki, controller_get_NW().Kd);
+    node_red_publish(NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE, pid_msg);
   }
-
-  // bool controller_set_orientation_p(float);
-  // bool controller_set_orientation_i(float);
-  // bool controller_set_orientation_d(float);
-
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  /*Serial.print(". Message: ");
-  String messageTemp;
-
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)message[i]);
-    messageTemp += (char)message[i];
-  }
-  Serial.println();*/
 }
 
 void node_red_publish(const char *topic, const char *data) {
   if (!mqtt_client.connected()) {
     mqtt_client.connect("Quadcopter");
+    node_red_sub_to_topics();
   }
   if (!(started && connected)) {
     // printf("Node red can't publish because it's not connected to wifi.\n");
@@ -115,25 +128,16 @@ void node_red_starter_task(void *) {
   mqtt_client.setServer(MQTT_BROKER, 1883);
   mqtt_client.setCallback(callback);
 
-  connect_attemt_counter = 0;
-  while (!mqtt_client.connected()) {
-    connect_attemt_counter += 1;
-    mqtt_client.connect("Quadcopter");
-    delay(500);
-    Serial.print(".");
-    if (connect_attemt_counter > NODE_RED_CONNECT_ATTEMPT_MAX) {
-      connected = false;
-      printf("Failed to connect to broker.\n");
-      vTaskDelete(NULL);
-    }
+  if (!node_red_mqtt_connect()) {
+    connected = false;
+    printf("Failed to connect to broker.\n");
+    vTaskDelete(NULL);
   }
+
   connected = true;
   printf("\nConnected to broker\n");
   printf("Node red started\n");
 
-  printf("Connect to topic: %d\n",
-         mqtt_client.subscribe(NODE_RED_ENABLE_TOPIC,
-                               1)); // Can only subscribe at 0 or 1
   node_red_publish("NW", "HELLO WORLD");
   xTaskCreatePinnedToCore(node_red_task, "node-red-controller-publish-task",
                           configMINIMAL_STACK_SIZE * 10, NULL, 1, NULL, 1);
@@ -141,7 +145,7 @@ void node_red_starter_task(void *) {
   vTaskDelete(NULL);
 }
 
-// handles publishing controller and filter data via node-red and makes sure
+// Handles publishing controller and filter data via node-red and makes sure
 // received mqtt messages are handled.
 void node_red_task(void *) {
   for (;;) {
@@ -159,6 +163,32 @@ void node_red_stop_publishing_controller_info() {
 
 void node_red_start_publishing_controller_info() {
   publish_task_publish = true;
+}
+
+// Attempt to connect to the broker
+bool node_red_mqtt_connect() {
+  uint8_t connect_attemt_counter = 0;
+  while (!mqtt_client.connected()) {
+    connect_attemt_counter += 1;
+    mqtt_client.connect("Quadcopter");
+    delay(500);
+    Serial.print(".");
+    if (connect_attemt_counter > NODE_RED_CONNECT_ATTEMPT_MAX) {
+      return false;
+    }
+  }
+  return node_red_sub_to_topics();
+}
+
+// Attempt to subscribe to the topics
+bool node_red_sub_to_topics() {
+  bool err = mqtt_client.subscribe(NODE_RED_ENABLE_TOPIC,
+                                   1); // Can only subscribe at 0 or 1
+  err &= mqtt_client.subscribe(NODE_RED_SET_ORIENTATION_P_TOPIC, 1);
+  err &= mqtt_client.subscribe(NODE_RED_SET_ORIENTATION_I_TOPIC, 1);
+  err &= mqtt_client.subscribe(NODE_RED_SET_ORIENTATION_D_TOPIC, 1);
+  err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND, 1);
+  return err;
 }
 
 // This code is not good as it will block the core from running other code
