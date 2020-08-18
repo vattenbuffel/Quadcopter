@@ -133,7 +133,7 @@ void controller_actuate_motors() {
   if (1.0 / CONTROLLER_HEARTBEAT_HZ * 1000 + heart_beat_time < millis() ||
       stop) {
     stop = true;
-    printf("STOP\n");
+    // printf("STOP\n");
     ESC_NE.writeMicroseconds(1000);
     ESC_SE.writeMicroseconds(1000);
     ESC_SW.writeMicroseconds(1000);
@@ -209,6 +209,30 @@ PID_orientation_t controller_get_NE() { return pid_NE; }
 PID_orientation_t controller_get_SW() { return pid_SW; }
 PID_orientation_t controller_get_SE() { return pid_SE; }
 bool controller_stopped() { return stop; }
+
+bool controller_set_orientation_p(float p) {
+  pid_NE.Kp = p;
+  pid_NW.Kp = p;
+  pid_SE.Kp = p;
+  pid_SW.Kp = p;
+  return true;
+}
+
+bool controller_set_orientation_i(float i) {
+  pid_NE.Kp = i;
+  pid_NW.Ki = i;
+  pid_SE.Ki = i;
+  pid_SW.Ki = i;
+  return true;
+}
+
+bool controller_set_orientation_d(float d) {
+  pid_NE.Kd = d;
+  pid_NW.Kd = d;
+  pid_SE.Kd = d;
+  pid_SW.Kd = d;
+  return true;
+}
 
 void controller_update() {
   if (NULL != controller_task_handle) {

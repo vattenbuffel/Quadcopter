@@ -6,9 +6,9 @@
 #define SW_PIN 0
 #define NW_PIN 15
 
-#define CONTROLLER_PID_ORIENTATION_P 50
-#define CONTROLLER_PID_ORIENTATION_I 50
-#define CONTROLLER_PID_ORIENTATION_D 9
+#define CONTROLLER_PID_ORIENTATION_P 15
+#define CONTROLLER_PID_ORIENTATION_I 0
+#define CONTROLLER_PID_ORIENTATION_D 9*0
 #define CONTROLLER_PID_HEIGHT_P 1
 #define CONTROLLER_PID_HEIGHT_I 1
 
@@ -43,6 +43,9 @@ void controller_update();
 void controller_update_ref_orientation();
 void controller_update_ref_height();
 void controller_update();
+bool controller_set_orientation_p(float);
+bool controller_set_orientation_i(float);
+bool controller_set_orientation_d(float);
 PID_orientation_t controller_get_NW();
 PID_orientation_t controller_get_NE();
 PID_orientation_t controller_get_SW();

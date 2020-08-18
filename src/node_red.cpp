@@ -5,9 +5,10 @@
 #include <PubSubClient.h>
 #include <WiFi.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void reconnect();
-void node_red_publisher_task(void *);
+void node_red_task(void *);
 void node_red_starter_task(void *);
 
 // Fix so that it can receive messages
@@ -23,10 +24,21 @@ bool connected = false;
 bool publish_task_publish = true;
 
 void callback(char *topic, byte *message, unsigned int length) {
-  printf("Received a mqtt-message\n");
   if (strcmp(topic, NODE_RED_ENABLE_TOPIC) == 0) {
     publish_task_publish = !publish_task_publish;
+    printf("node-red publish is set to: %d\n", publish_task_publish);
+  } else if (strcmp(topic, NODE_RED_SET_ORIENTATION_P_TOPIC) == 0) {
+    float p = atof((char*)message);
+    if (controller_set_orientation_p(p))
+      printf("Set orientation pid p to: %f.\n", p);
+    else
+      printf("Failed to set orientation pid p.\n");
   }
+
+  // bool controller_set_orientation_p(float);
+  // bool controller_set_orientation_i(float);
+  // bool controller_set_orientation_d(float);
+
   Serial.print("Message arrived on topic: ");
   Serial.print(topic);
   /*Serial.print(". Message: ");
@@ -40,7 +52,7 @@ void callback(char *topic, byte *message, unsigned int length) {
 }
 
 void node_red_publish(const char *topic, const char *data) {
-  if(!mqtt_client.connected()){
+  if (!mqtt_client.connected()) {
     mqtt_client.connect("Quadcopter");
   }
   if (!(started && connected)) {
@@ -116,24 +128,27 @@ void node_red_starter_task(void *) {
     }
   }
   connected = true;
-  printf("Connected to broker\n");
+  printf("\nConnected to broker\n");
   printf("Node red started\n");
 
-  mqtt_client.subscribe(NODE_RED_ENABLE_TOPIC,
-                        1); // Can only subscribe at 0 or 1
+  printf("Connect to topic: %d\n",
+         mqtt_client.subscribe(NODE_RED_ENABLE_TOPIC,
+                               1)); // Can only subscribe at 0 or 1
   node_red_publish("NW", "HELLO WORLD");
-  xTaskCreatePinnedToCore(node_red_publisher_task,
-                          "node-red-controller-publish-task",
+  xTaskCreatePinnedToCore(node_red_task, "node-red-controller-publish-task",
                           configMINIMAL_STACK_SIZE * 10, NULL, 1, NULL, 1);
 
   vTaskDelete(NULL);
 }
 
-void node_red_publisher_task(void *) {
+// handles publishing controller and filter data via node-red and makes sure
+// received mqtt messages are handled.
+void node_red_task(void *) {
   for (;;) {
     if (publish_task_publish && !controller_stopped()) {
       node_red_publish_controller_info();
     }
+    mqtt_client.loop();
     vTaskDelay(1.f / NODE_RED_PUBLISH_HZ * 1000);
   }
 }
