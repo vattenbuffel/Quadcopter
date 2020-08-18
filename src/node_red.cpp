@@ -40,9 +40,9 @@ void callback(char *topic, byte *message, unsigned int length) {
 }
 
 void node_red_publish(const char *topic, const char *data) {
-  // if(!mqtt_client.connected()){
-  //   reconnect();
-  // }
+  if(!mqtt_client.connected()){
+    mqtt_client.connect("Quadcopter");
+  }
   if (!(started && connected)) {
     // printf("Node red can't publish because it's not connected to wifi.\n");
     return;
@@ -141,6 +141,7 @@ void node_red_publisher_task(void *) {
 void node_red_stop_publishing_controller_info() {
   publish_task_publish = false;
 }
+
 void node_red_start_publishing_controller_info() {
   publish_task_publish = true;
 }
