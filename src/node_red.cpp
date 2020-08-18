@@ -14,8 +14,6 @@ bool node_red_sub_to_topics();
 bool node_red_mqtt_connect();
 void node_red_publish_pid_params();
 
-// Maybe implement stop if X/Y go too weird?
-
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
 long lastMsg = 0;
@@ -161,7 +159,7 @@ void node_red_task(void *) {
       node_red_publish_controller_info();
     }
     mqtt_client.loop();
-    vTaskDelay(1.f / NODE_RED_PUBLISH_HZ * 1000);
+    vTaskDelay(1.f / NODE_RED_PUBLISH_HZ * 1000/ portTICK_RATE_MS);
   }
 }
 

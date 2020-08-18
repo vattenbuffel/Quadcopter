@@ -61,7 +61,7 @@ void distance_measurement_task(void *pvParameters) {
     xSemaphoreGive(wire_lock_distance);
 
     // If the read distance is too big, i.e. the quad is too high or the
-    // measurement freaks out up set the read value to a safe value rather than
+    // measurement freaks out, set the read value to a safe value rather than
     // the max which it's output as.
     if (distance_m > DISTANCE_MEASUREMENT_OOR_VALUE)
       distance_m = DISTANCE_MEASUREMENT_OOR_VALUE;
@@ -70,7 +70,15 @@ void distance_measurement_task(void *pvParameters) {
     // the trick.
     if (distance_sensor.timeoutOccurred()) {
       printf("Timeout on distance measurement\n");
-      xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
+      for (;;) {
+        distance_sensor = VL53L0X();
+        vTaskDelay(1.0 / DISTANCE_MEASUREMENT_HZ * 1000 / portTICK_RATE_MS);
+      }
+      distance_sensor.init();
+      distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
+      distance_sensor.startContinuous();
+
+      // xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
       // for(;;){
       //   printf("dist: %d\n",
       //   distance_sensor.readRangeContinuousMillimeters());

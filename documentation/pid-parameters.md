@@ -3,9 +3,9 @@
 
 ## Best so far:  
 ### Orientation:  
-* P: 50  
+* P: 15  
 * I: 50  
-* D: 9
+* D: 0.05
 
 ### Height:
 * P:  

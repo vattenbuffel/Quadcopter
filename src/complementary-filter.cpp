@@ -126,7 +126,7 @@ void filter_task(void *) {
       // printf("Gonna update controller\n");
       controller_update();
       vTaskDelay(1.f / FILTER_UPDATE_HZ *
-                 1000); // Only wait if estimation is updated
+                 1000/ portTICK_RATE_MS); // Only wait if estimation is updated
     }
   }
 }
