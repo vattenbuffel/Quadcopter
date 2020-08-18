@@ -12,6 +12,7 @@ void node_red_task(void *);
 void node_red_starter_task(void *);
 bool node_red_sub_to_topics();
 bool node_red_mqtt_connect();
+void node_red_publish_pid_params();
 
 // Maybe implement stop if X/Y go too weird?
 
@@ -40,27 +41,34 @@ void callback(char *topic, byte *message, unsigned int length) {
   else if (strcmp(topic, NODE_RED_SET_ORIENTATION_P_TOPIC) == 0) {
     float p = atof(messageTemp);
     if (controller_set_orientation_p(p)) {
+      node_red_publish_pid_params();
       printf("Set orientation pid p to: %f.\n", p);
     } else
       printf("Failed to set orientation pid p.\n");
   } else if (strcmp(topic, NODE_RED_SET_ORIENTATION_I_TOPIC) == 0) {
     float i = atof(messageTemp);
-    if (controller_set_orientation_i(i))
+    if (controller_set_orientation_i(i)) {
       printf("Set orientation pid i to: %f.\n", i);
-    else
+      node_red_publish_pid_params();
+    } else
       printf("Failed to set orientation pid i.\n");
   } else if (strcmp(topic, NODE_RED_SET_ORIENTATION_D_TOPIC) == 0) {
     float d = atof(messageTemp);
-    if (controller_set_orientation_d(d))
+    if (controller_set_orientation_d(d)) {
       printf("Set orientation pid d to: %f.\n", d);
-    else
+      node_red_publish_pid_params();
+    } else
       printf("Failed to set orientation pid d.\n");
   } else if (strcmp(topic, NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND) == 0) {
-    char pid_msg[100]; // 100 is probably big enough
-    sprintf(pid_msg, "p:%f i:%f d:%f", controller_get_NW().Kp,
-            controller_get_NW().Ki, controller_get_NW().Kd);
-    node_red_publish(NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE, pid_msg);
+    node_red_publish_pid_params();
   }
+}
+
+void node_red_publish_pid_params() {
+  char pid_msg[100]; // 100 is probably big enough
+  sprintf(pid_msg, "p:%f i:%f d:%f", controller_get_NW().Kp,
+          controller_get_NW().Ki, controller_get_NW().Kd);
+  node_red_publish(NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE, pid_msg);
 }
 
 void node_red_publish(const char *topic, const char *data) {
