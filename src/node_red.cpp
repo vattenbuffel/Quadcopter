@@ -133,7 +133,6 @@ void node_red_publisher_task(void *) {
   for (;;) {
     if (publish_task_publish && !controller_stopped()) {
       node_red_publish_controller_info();
-      // printf("published\n");
     }
     vTaskDelay(1.f / NODE_RED_PUBLISH_HZ * 1000);
   }

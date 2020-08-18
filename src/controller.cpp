@@ -14,6 +14,7 @@ bool stop, calibration_active;
 float bluetooth_base_throttle;
 
 static TaskHandle_t motor_calibration_handle = NULL;
+static TaskHandle_t controller_task_handle = NULL;
 
 // Private functions
 void controller_update_orientation();
@@ -24,9 +25,10 @@ void controller_reset_controllers();
 void controller_command_handler_task(void *pvParameter);
 void controller_motor_calibration_handler();
 void controller_motor_calibration_task(void *pvParameter);
+void controller_update_task(void *);
 
-void controller_init(QueueHandle_t distance_queue,
-                     QueueHandle_t command_queue) {
+void controller_start(QueueHandle_t distance_queue,
+                      QueueHandle_t command_queue) {
   stop = true;
   calibration_active = false;
   heart_beat_time = millis();
@@ -101,13 +103,18 @@ void controller_init(QueueHandle_t distance_queue,
   ////////////
 
   // Start the command handler so that the quad can be
-  // c192.168.1.11:1880+192ontrolled via bluetooth
+  // controlled via bluetooth
   xTaskCreatePinnedToCore(
       controller_command_handler_task, "Command_handler_controller",
-      configMINIMAL_STACK_SIZE * 5, (void *)command_queue, 1, NULL, 0);
+      configMINIMAL_STACK_SIZE * 5, (void *)command_queue, 1, NULL, 1);
+
+  // Start controller_update_task
+  xTaskCreatePinnedToCore(controller_update_task, "Controller_update_task",
+                          configMINIMAL_STACK_SIZE * 5, NULL, 5,
+                          &controller_task_handle, 0);
 }
 
-void controller_update() {
+void controller_update_private() {
   if (calibration_active) {
     // printf("Calibration in progress. Can't update controller. \n");
     return;
@@ -201,7 +208,20 @@ PID_orientation_t controller_get_NW() { return pid_NW; }
 PID_orientation_t controller_get_NE() { return pid_NE; }
 PID_orientation_t controller_get_SW() { return pid_SW; }
 PID_orientation_t controller_get_SE() { return pid_SE; }
-bool controller_stopped(){return stop;}
+bool controller_stopped() { return stop; }
+
+void controller_update() {
+  if (NULL != controller_task_handle) {
+    xTaskNotify(controller_task_handle, 0, eNoAction);
+  }
+}
+
+void controller_update_task(void *) {
+  for (;;) {
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    controller_update_private();
+  }
+}
 
 // Calibrates the ESC/motors
 void controller_motor_calibration_task(void *pvParameter) {

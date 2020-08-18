@@ -4,12 +4,12 @@ core0 = High priority stuff
 
 Core1 should run:
 	Receiving commands via bluetooth
+	Handling the commands, i.e. changing the reference values, priority: 1
 	Measure distance to ground
 	node-red communication
 
 Core0 should run:
-	Handling the commands, i.e. changing the reference values
-	Complementary filter
-	PID-controller
+	Complementary filter, priority: 5
+	PID-controller, priority: 5
 
 

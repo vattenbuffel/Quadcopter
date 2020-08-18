@@ -8,7 +8,7 @@
 
 #define CONTROLLER_PID_ORIENTATION_P 50
 #define CONTROLLER_PID_ORIENTATION_I 50
-#define CONTROLLER_PID_ORIENTATION_D 10
+#define CONTROLLER_PID_ORIENTATION_D 9
 #define CONTROLLER_PID_HEIGHT_P 1
 #define CONTROLLER_PID_HEIGHT_I 1
 
@@ -38,10 +38,11 @@ typedef enum {
   command_circle
 } command_enum;
 
-void controller_init(QueueHandle_t distance_queue, QueueHandle_t command_queue);
+void controller_start(QueueHandle_t distance_queue, QueueHandle_t command_queue);
 void controller_update();
 void controller_update_ref_orientation();
 void controller_update_ref_height();
+void controller_update();
 PID_orientation_t controller_get_NW();
 PID_orientation_t controller_get_NE();
 PID_orientation_t controller_get_SW();
