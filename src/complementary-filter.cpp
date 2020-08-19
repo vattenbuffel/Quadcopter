@@ -74,20 +74,25 @@ void complementary_filter() {
 
 void start_filter(xSemaphoreHandle wire_lock) {
   wire_lock_filter = wire_lock;
+  xSemaphoreTake(wire_lock_filter, portMAX_DELAY);
   mySensor.setWire(&Wire);
   mySensor.beginAccel();
   mySensor.beginGyro();
   mySensor.beginMag();
+  xSemaphoreGive(wire_lock_filter);
 
   XYZ_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(XYZ_lock);
   xTaskCreatePinnedToCore(filter_task, "Filter-task",
                           configMINIMAL_STACK_SIZE * 10, NULL, 5, NULL, 0);
+  printf("Started complementary filter.\n");
 }
 
 bool update_filter() {
   // Make sure wire is available
+  // printf("filter trying to take wire_lock\n");
   xSemaphoreTake(wire_lock_filter, portMAX_DELAY);
+  // printf("filter took wire_lock\n");
 
   // check if there's new data
   if (mySensor.accelUpdate() != 0 || mySensor.gyroUpdate() != 0) {
@@ -125,8 +130,8 @@ void filter_task(void *) {
     if (updated_orientation) {
       // printf("Gonna update controller\n");
       controller_update();
-      vTaskDelay(1.f / FILTER_UPDATE_HZ *
-                 1000/ portTICK_RATE_MS); // Only wait if estimation is updated
+      vTaskDelay(1.f / FILTER_UPDATE_HZ * 1000 /
+                 portTICK_RATE_MS); // Only wait if estimation is updated
     }
   }
 }
