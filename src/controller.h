@@ -46,10 +46,13 @@ void controller_update();
 bool controller_set_orientation_p(float);
 bool controller_set_orientation_i(float);
 bool controller_set_orientation_d(float);
+bool controller_set_height_p(float);
+bool controller_set_height_i(float);
 PID_orientation_t controller_get_NW();
 PID_orientation_t controller_get_NE();
 PID_orientation_t controller_get_SW();
 PID_orientation_t controller_get_SE();
+PID_height_t controller_get_height_pid();
 bool controller_stopped();
 
 #endif // CONTROLLER_H_

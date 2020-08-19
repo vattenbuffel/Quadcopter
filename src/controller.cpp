@@ -209,6 +209,7 @@ PID_orientation_t controller_get_NW() { return pid_NW; }
 PID_orientation_t controller_get_NE() { return pid_NE; }
 PID_orientation_t controller_get_SW() { return pid_SW; }
 PID_orientation_t controller_get_SE() { return pid_SE; }
+PID_height_t controller_get_height_pid() { return pid_height; }
 bool controller_stopped() { return stop; }
 
 bool controller_set_orientation_p(float p) {
@@ -232,6 +233,16 @@ bool controller_set_orientation_d(float d) {
   pid_NW.Kd = d;
   pid_SE.Kd = d;
   pid_SW.Kd = d;
+  return true;
+}
+
+bool controller_set_height_p(float p) {
+  pid_height.Kp = p;
+  return true;
+}
+
+bool controller_set_height_i(float i) {
+  pid_height.Ki = i;
   return true;
 }
 

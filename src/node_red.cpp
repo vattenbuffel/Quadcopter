@@ -24,11 +24,15 @@ bool connected = false;
 bool publish_task_publish = true;
 
 void callback(char *topic, byte *message, unsigned int length) {
+  // This function is so hard to read. It should be improved.
+
   // This is needed to convert the byte message to a char message
   char messageTemp[length];
   for (int i = 0; i < length; i++) {
     messageTemp[i] = (char)message[i];
   }
+
+  printf("message arrived on topic: %s\n", topic);
 
   // Enables or disables publising controller and complementary filter
   if (strcmp(topic, NODE_RED_ENABLE_TOPIC) == 0) {
@@ -57,15 +61,30 @@ void callback(char *topic, byte *message, unsigned int length) {
       node_red_publish_pid_params();
     } else
       printf("Failed to set orientation pid d.\n");
+  } else if (strcmp(topic, NODE_RED_SET_HEIGHT_P_TOPIC) == 0) {
+    float p = atof(messageTemp);
+    if (controller_set_height_p(p)) {
+      node_red_publish_pid_params();
+      printf("Set height pid p to: %f.\n", p);
+    } else
+      printf("Failed to set height pid p.\n");
+  } else if (strcmp(topic, NODE_RED_SET_HEIGHT_I_TOPIC) == 0) {
+    float i = atof(messageTemp);
+    if (controller_set_height_i(i)) {
+      printf("Set height pid i to: %f.\n", i);
+      node_red_publish_pid_params();
+    } else
+      printf("Failed to set height pid i.\n");
   } else if (strcmp(topic, NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND) == 0) {
     node_red_publish_pid_params();
   }
 }
 
 void node_red_publish_pid_params() {
-  char pid_msg[100]; // 100 is probably big enough
-  sprintf(pid_msg, "p:%f i:%f d:%f", controller_get_NW().Kp,
-          controller_get_NW().Ki, controller_get_NW().Kd);
+  char pid_msg[1000]; // 1000 is probably big enough
+  sprintf(pid_msg, "o_p:%f o_i:%f o_d:%f h_p:%f h_i:%f", controller_get_NW().Kp,
+          controller_get_NW().Ki, controller_get_NW().Kd,
+          controller_get_height_pid().Kp, controller_get_height_pid().Ki);
   node_red_publish(NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE, pid_msg);
 }
 
@@ -86,6 +105,8 @@ void node_red_publish(const char *topic, const char *data) {
   }
 }
 
+// Publishes the orientation and height pid throttles and X and Y values to
+// their topics.
 void node_red_publish_controller_info() {
   char number_c[50];
   sprintf(number_c, "%f", controller_get_NE().throttle);
@@ -96,6 +117,9 @@ void node_red_publish_controller_info() {
   node_red_publish("NW", number_c);
   sprintf(number_c, "%f", controller_get_SW().throttle);
   node_red_publish("SW", number_c);
+
+  sprintf(number_c, "%f", controller_get_height_pid().base_throttle);
+  node_red_publish("H", number_c);
 
   sprintf(number_c, "%f", get_X());
   node_red_publish("X", number_c);
@@ -159,7 +183,7 @@ void node_red_task(void *) {
       node_red_publish_controller_info();
     }
     mqtt_client.loop();
-    vTaskDelay(1.f / NODE_RED_PUBLISH_HZ * 1000/ portTICK_RATE_MS);
+    vTaskDelay(1.f / NODE_RED_PUBLISH_HZ * 1000 / portTICK_RATE_MS);
   }
 }
 
@@ -193,6 +217,8 @@ bool node_red_sub_to_topics() {
   err &= mqtt_client.subscribe(NODE_RED_SET_ORIENTATION_P_TOPIC, 1);
   err &= mqtt_client.subscribe(NODE_RED_SET_ORIENTATION_I_TOPIC, 1);
   err &= mqtt_client.subscribe(NODE_RED_SET_ORIENTATION_D_TOPIC, 1);
+  err &= mqtt_client.subscribe(NODE_RED_SET_HEIGHT_P_TOPIC, 1);
+  err &= mqtt_client.subscribe(NODE_RED_SET_HEIGHT_I_TOPIC, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND, 1);
   return err;
 }

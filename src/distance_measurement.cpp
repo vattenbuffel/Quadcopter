@@ -6,20 +6,14 @@
 #include <Wire.h>
 #include <math.h>
 
-/**
- * This file takes care of measuring the distance downwards and with the help of
- * the estimated orientation calculates how far above the ground the quadcopter
- * is. It has occasionally freaked out and become unresponsive. It's unclear
- * what the cause of this is. Or how to combat it. Maybe it's due to bad
- * soldering and will get better once the custom PCB is installed.
- */
-
 QueueHandle_t distance_queue__;
 VL53L0X distance_sensor;
 
 xSemaphoreHandle wire_lock_distance;
-
 unsigned long distance_last_time_update;
+
+float latest_height;
+xSemaphoreHandle latest_height_lock;
 
 // Private functions
 void distance_measurement_send_new_data();
@@ -31,7 +25,9 @@ void distance_measurement_task(void *pvParameters);
 void distance_measurement_init(QueueHandle_t distance_queue_input,
                                xSemaphoreHandle wire_lock) {
   wire_lock_distance = wire_lock;
+  printf("disdtance gonan take lock\n");
   xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
+  printf("disdtance took lock\n");
   distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
   if (!distance_sensor.init()) {
     xSemaphoreGive(wire_lock_distance);
@@ -44,11 +40,23 @@ void distance_measurement_init(QueueHandle_t distance_queue_input,
   xSemaphoreGive(wire_lock_distance);
 
   distance_queue__ = distance_queue_input;
+
+  latest_height_lock = xSemaphoreCreateBinary();
+  xSemaphoreGive(latest_height_lock);
+
   xTaskCreatePinnedToCore(distance_measurement_task, "Distance_measurement",
                           configMINIMAL_STACK_SIZE * 4, NULL, 1, NULL, 0);
   printf("Distance sensor started\n");
 
   distance_last_time_update = millis();
+}
+
+float distance_measurement_get_height() {
+  float temp_height;
+  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
+  temp_height = latest_height;
+  xSemaphoreGive(latest_height_lock);
+  return temp_height;
 }
 
 // This is the main distance_measurement task. It is responsible for adding the
@@ -70,26 +78,29 @@ void distance_measurement_task(void *pvParameters) {
 
     // Sometime it will freak out for unkown reason. Restarting it seems to do
     // the trick.
-    if (distance_sensor.timeoutOccurred()) {
+    /*if (distance_sensor.timeoutOccurred()) {
       printf("Timeout on distance measurement\n");
-      // distance_sensor = VL53L0X();
-      // while (!distance_sensor.init()) {
-      //   vTaskDelay(1.0 / DISTANCE_MEASUREMENT_HZ * 1000 / portTICK_RATE_MS);
-      // }
-      // distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
-      // distance_sensor.startContinuous();
+      distance_sensor = VL53L0X();
+      while (!distance_sensor.init()) {
+        vTaskDelay(1.0 / DISTANCE_MEASUREMENT_HZ * 1000 / portTICK_RATE_MS);
+      }
+      distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
+      distance_sensor.startContinuous();
 
-      // xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-      // for(;;){
-      //   printf("dist: %d\n",
-      //   distance_sensor.readRangeContinuousMillimeters());
-      // }
-    }
+      xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
+      for(;;){
+        printf("dist: %d\n",
+        distance_sensor.readRangeContinuousMillimeters());
+      }
+    }*/
 
     // Calculate how high above ground the quadcopter is
     height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
 
     xQueueOverwrite(distance_queue__, &height_m);
+    xSemaphoreTake(latest_height_lock, portMAX_DELAY);
+    latest_height = height_m;
+    xSemaphoreGive(latest_height_lock);
 
     vTaskDelay(1.0 / DISTANCE_MEASUREMENT_HZ * 1000 / portTICK_RATE_MS);
   }

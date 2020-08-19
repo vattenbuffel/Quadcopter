@@ -10,7 +10,7 @@
 #include <Wire.h>
 
 // This dictates if data should be published on node-red
-// #define NODE_RED
+#define NODE_RED
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
@@ -29,24 +29,30 @@ void setup() {
   xSemaphoreGive(wire_lock);
   start_filter(wire_lock);
 
+  printf("gonna start command\n");
   command_queue = xQueueCreate(10, sizeof(int));
-  // command_init(command_queue);
+  command_init(command_queue);
 
+  printf("gonna start height measurement\n");
   distance_queue = xQueueCreate(1, sizeof(height_type));
   distance_measurement_init(distance_queue, wire_lock);
 
-  // controller_start(distance_queue, command_queue);
+  printf("gonna start controller\n");
+  controller_start(distance_queue, command_queue);
 
+printf("before node-red if statemd\n");
 #ifdef NODE_RED
+  printf("gonna start node-red\n");
   node_red_start();
+  printf("started node-red \n");
 #endif // NODE_RED
 }
 
 void loop() {
   volatile int data;
   height_type height;
-  if (xQueueReceive(distance_queue, &height, 0) == pdTRUE)
-    printf("distance: %f\n", height);
+  // if (xQueueReceive(distance_queue, &height, 0) == pdTRUE)
+  //   printf("distance: %f\n", height);
   // if(xQueueReceive(command_queue,  &data, 0) == pdTRUE) printf("command:
   // %d\n", data);
 
@@ -57,4 +63,3 @@ void loop() {
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
 }
-

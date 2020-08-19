@@ -20,8 +20,7 @@ typedef struct PID_orientation_t {
 };
 
 typedef struct PID_height_t {
-  float base_throttle; // eventually update base_throttle based on the distance
-                       // from the ground
+  float base_throttle; 
   float Kp, Ki, I;
   float r; // in m
   long t_prev;

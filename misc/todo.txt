@@ -1,7 +1,3 @@
 Maybe implement a safety feature which stops the motor when an angle is out of bound
 
-Fix so that distance sensor doesn't freak out sometimes
-
 Send error messages via mqtt to the topic "error"
-
-Send distance and distance pid data via node-red

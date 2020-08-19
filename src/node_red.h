@@ -7,6 +7,8 @@
 #define NODE_RED_SET_ORIENTATION_P_TOPIC "orientation-p"
 #define NODE_RED_SET_ORIENTATION_I_TOPIC "orientation-i"
 #define NODE_RED_SET_ORIENTATION_D_TOPIC "orientation-d"
+#define NODE_RED_SET_HEIGHT_P_TOPIC "height-p"
+#define NODE_RED_SET_HEIGHT_I_TOPIC "height-i"
 #define NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND "get-pid-param-send"
 #define NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE "get-pid-param-receive"
 
