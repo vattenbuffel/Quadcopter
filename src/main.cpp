@@ -29,22 +29,16 @@ void setup() {
   xSemaphoreGive(wire_lock);
   start_filter(wire_lock);
 
-  printf("gonna start command\n");
   command_queue = xQueueCreate(10, sizeof(int));
   command_init(command_queue);
 
-  printf("gonna start height measurement\n");
   distance_queue = xQueueCreate(1, sizeof(height_type));
   distance_measurement_init(distance_queue, wire_lock);
 
-  printf("gonna start controller\n");
   controller_start(distance_queue, command_queue);
 
-printf("before node-red if statemd\n");
 #ifdef NODE_RED
-  printf("gonna start node-red\n");
   node_red_start();
-  printf("started node-red \n");
 #endif // NODE_RED
 }
 

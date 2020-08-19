@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "distance_measurement.h"
 
 void reconnect();
 void node_red_task(void *);
@@ -105,7 +106,7 @@ void node_red_publish(const char *topic, const char *data) {
   }
 }
 
-// Publishes the orientation and height pid throttles and X and Y values to
+// Publishes the orientation and height pid throttles and X, Y and height values to
 // their topics.
 void node_red_publish_controller_info() {
   char number_c[50];
@@ -119,6 +120,8 @@ void node_red_publish_controller_info() {
   node_red_publish("SW", number_c);
 
   sprintf(number_c, "%f", controller_get_height_pid().base_throttle);
+  node_red_publish("HPID", number_c);
+  sprintf(number_c, "%f", distance_measurement_get_height());
   node_red_publish("H", number_c);
 
   sprintf(number_c, "%f", get_X());
