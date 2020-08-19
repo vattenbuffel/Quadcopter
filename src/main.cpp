@@ -30,12 +30,12 @@ void setup() {
   start_filter(wire_lock);
 
   command_queue = xQueueCreate(10, sizeof(int));
-  command_init(command_queue);
+  // command_init(command_queue);
 
   distance_queue = xQueueCreate(1, sizeof(height_type));
   distance_measurement_init(distance_queue, wire_lock);
 
-  controller_start(distance_queue, command_queue);
+  // controller_start(distance_queue, command_queue);
 
 #ifdef NODE_RED
   node_red_start();
@@ -58,45 +58,3 @@ void loop() {
   // Serial.println(radToDeg(get_Z()));
 }
 
-
-
-
-
-/* This example shows how to use continuous mode to take
-range measurements with the VL53L0X. It is based on
-vl53l0x_ContinuousRanging_Example.c from the VL53L0X API.
-The range readings are in units of mm. */
-
-// #include <Wire.h>
-// #include <VL53L0X.h>
-// #include "Arduino.h"
-
-// VL53L0X sensor;
-
-// void setup()
-// {
-//   Serial.begin(115200);
-//   Wire.begin();
-
-//   sensor.setTimeout(500);
-//   if (!sensor.init())
-//   {
-//     Serial.println("Failed to detect and initialize sensor!");
-//     while (1) {}
-//   }
-//   printf("inited!\n");
-
-//   // Start continuous back-to-back mode (take readings as
-//   // fast as possible).  To use continuous timed mode
-//   // instead, provide a desired inter-measurement period in
-//   // ms (e.g. sensor.startContinuous(100)).
-//   sensor.startContinuous();
-// }
-
-// void loop()
-// {
-//   Serial.print(sensor.readRangeContinuousMillimeters());
-//   if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-
-//   Serial.println();
-// }

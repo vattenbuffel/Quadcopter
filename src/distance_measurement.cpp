@@ -31,25 +31,22 @@ void distance_measurement_task(void *pvParameters);
 void distance_measurement_init(QueueHandle_t distance_queue_input,
                                xSemaphoreHandle wire_lock) {
   wire_lock_distance = wire_lock;
-  printf("distance trying to take wire_lock\n");
   xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-  printf("distance took wire_lock\n");
-  printf("gonna init distance\n");
+  distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
   if (!distance_sensor.init()) {
     xSemaphoreGive(wire_lock_distance);
     printf("Failed to init distance sensor, VL53L0X\n");
     for (;;) {
     }
   }
-  distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
+  printf("Distance sensor initialized\n");
   distance_sensor.startContinuous();
   xSemaphoreGive(wire_lock_distance);
-  printf("Distance sensor initialized\n");
-
-  xTaskCreatePinnedToCore(distance_measurement_task, "Distance_measurement",
-                          configMINIMAL_STACK_SIZE * 4, NULL, 1, NULL, 0);
 
   distance_queue__ = distance_queue_input;
+  xTaskCreatePinnedToCore(distance_measurement_task, "Distance_measurement",
+                          configMINIMAL_STACK_SIZE * 4, NULL, 1, NULL, 0);
+  printf("Distance sensor started\n");
 
   distance_last_time_update = millis();
 }
@@ -59,25 +56,20 @@ void distance_measurement_init(QueueHandle_t distance_queue_input,
 // dictates.
 void distance_measurement_task(void *pvParameters) {
   for (;;) {
-    // printf("gonna read distance\n");
     // Make sure wire is available before reading
     xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-    // printf("got wire_lock so can now read distance\n");
     height_type distance_m = distance_sensor.readRangeContinuousMillimeters() /
                              1000.f; // Convert mm to m
     xSemaphoreGive(wire_lock_distance);
-    // printf("read distance\n");
 
     // If the read distance is too big, i.e. the quad is too high or the
     // measurement freaks out, set the read value to a safe value rather than
     // the max which it's output as.
-    // printf("Checkout distan oor\n");
     if (distance_m > DISTANCE_MEASUREMENT_OOR_VALUE)
       distance_m = DISTANCE_MEASUREMENT_OOR_VALUE;
 
     // Sometime it will freak out for unkown reason. Restarting it seems to do
     // the trick.
-    // printf("Check distance timeout\n");
     if (distance_sensor.timeoutOccurred()) {
       printf("Timeout on distance measurement\n");
       // distance_sensor = VL53L0X();
@@ -93,18 +85,12 @@ void distance_measurement_task(void *pvParameters) {
       //   distance_sensor.readRangeContinuousMillimeters());
       // }
     }
-    // printf("Checked distance timeout\n");
 
     // Calculate how high above ground the quadcopter is
-    height_type height_m = distance_m;// * cos(get_X()) * cos(get_Y());
-    // printf("Compensated reading for orientation\n");
+    height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
 
-    // printf("Gonna write to queue\n");
     xQueueOverwrite(distance_queue__, &height_m);
-    // printf("wrote to queue\n");
 
     vTaskDelay(1.0 / DISTANCE_MEASUREMENT_HZ * 1000 / portTICK_RATE_MS);
-    // printf("time since last distance update: %lu\n", millis() -
-    // distance_last_time_update); distance_last_time_update = millis();
   }
 }
