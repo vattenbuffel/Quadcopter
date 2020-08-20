@@ -12,8 +12,8 @@ VL53L0X distance_sensor;
 xSemaphoreHandle wire_lock_distance;
 unsigned long distance_last_time_update;
 
-float latest_height;
-xSemaphoreHandle latest_height_lock;
+float latest_height = 1;
+xSemaphoreHandle latest_height_lock = NULL;
 
 // Private functions
 void distance_measurement_send_new_data();
@@ -50,6 +50,9 @@ void distance_measurement_init(QueueHandle_t distance_queue_input,
 }
 
 float distance_measurement_get_height() {
+  if (latest_height_lock == NULL)
+    return latest_height;
+  
   float temp_height;
   xSemaphoreTake(latest_height_lock, portMAX_DELAY);
   temp_height = latest_height;

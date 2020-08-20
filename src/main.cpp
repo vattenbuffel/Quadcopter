@@ -11,7 +11,7 @@
 #include <Wire.h>
 
 // This dictates if data should be published on node-red
-#define NODE_RED
+// #define NODE_RED
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
@@ -48,7 +48,7 @@ void loop() {
   // if(xQueueReceive(command_queue,  &data, 0) == pdTRUE) printf("command:
   // %d\n", data);
 
-  // printf("Cur height: %f\n", distance_measurement_get_height());
+  printf("Cur height: %f\n", distance_measurement_get_height());
 
   // Serial.print("X :");
   // Serial.print(radToDeg(get_X()));

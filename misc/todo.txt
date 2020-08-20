@@ -1,3 +1,5 @@
 Send error messages via mqtt to the topic "error"
 
 Try to estimate location in space. Start doing this using only the imu and see how that works
+
+Update node-red flow json file
