@@ -14,7 +14,6 @@ float X = 0;
 float Y = 0;
 float Z = 0;
 
-// Private functions
 void set_X(float);
 void set_Y(float);
 void set_Z(float);
@@ -22,6 +21,7 @@ void filter_task(void *);
 
 // Function implementations
 void compensate() {
+  // printf();
   accelZ = accelZ;
   accelY = accelY + 0.0039;
   accelX = accelX + 0.02;

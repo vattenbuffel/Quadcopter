@@ -188,6 +188,8 @@ void controller_set_ref_orientation(float rX, float rY, float rZ) {
   change_ref(&pid_NW, rX, rY, rZ);
 }
 
+
+// Resets the pids to their start state
 void controller_reset_controllers() {
   // printf("reset controllers\n");
   pid_NE.IX = 0;
@@ -210,7 +212,7 @@ void controller_reset_controllers() {
                                  CONTROLLER_ORIENTATION_BASE_REF_Y,
                                  CONTROLLER_ORIENTATION_BASE_REF_Z);
 
-  pid_height.I = 0;
+  pid_height.I = CONTROLLER_HEIGHT_PID_START_THROTTLE;
   change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
 }
 

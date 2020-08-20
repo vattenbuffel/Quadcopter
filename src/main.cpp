@@ -45,11 +45,10 @@ void setup() {
 
 void loop() {
   volatile int data;
-  height_type height;
-  // if (xQueueReceive(distance_queue, &height, 0) == pdTRUE)
-  //   printf("distance: %f\n", height);
   // if(xQueueReceive(command_queue,  &data, 0) == pdTRUE) printf("command:
   // %d\n", data);
+
+  // printf("Cur height: %f\n", distance_measurement_get_height());
 
   // Serial.print("X :");
   // Serial.print(radToDeg(get_X()));
@@ -58,3 +57,35 @@ void loop() {
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
 }
+
+// #include <Wire.h>
+// #include <VL53L0X.h>
+// // #include "Arduino.h"
+// VL53L0X sensor;
+
+// void setup()
+// {
+//   Serial.begin(115200);
+//   Wire.begin();
+
+//   sensor.setTimeout(500);
+//   if (!sensor.init())
+//   {
+//     Serial.println("Failed to detect and initialize sensor!");
+//     while (1) {}
+//   }
+
+//   // Start continuous back-to-back mode (take readings as
+//   // fast as possible).  To use continuous timed mode
+//   // instead, provide a desired inter-measurement period in
+//   // ms (e.g. sensor.startContinuous(100)).
+//   sensor.startContinuous();
+// }
+
+// void loop()
+// {
+//   Serial.print(sensor.readRangeContinuousMillimeters());
+//   if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+
+//   Serial.println();
+// }
