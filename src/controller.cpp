@@ -1,5 +1,6 @@
 #include "controller.h"
 #include "PID.h"
+#include "complementary-filter.h"
 #include "math.h"
 #include "node_red.h"
 #include <Servo.h>
@@ -26,6 +27,8 @@ void controller_command_handler_task(void *pvParameter);
 void controller_motor_calibration_handler();
 void controller_motor_calibration_task(void *pvParameter);
 void controller_update_task(void *);
+void controller_stop();
+void controller_emergency_stop();
 
 void controller_start(QueueHandle_t distance_queue,
                       QueueHandle_t command_queue) {
@@ -99,7 +102,6 @@ void controller_start(QueueHandle_t distance_queue,
   pid_height.r = 1;
   pid_height.t_prev = micros();
 
-
   // Start the command handler so that the quad can be
   // controlled via bluetooth
   xTaskCreatePinnedToCore(
@@ -118,6 +120,8 @@ void controller_update_private() {
     return;
   }
 
+  controller_emergency_stop();
+
   update_throttle(&pid_height);
   controller_set_base_throtle_orientation(pid_height.base_throttle +
                                           bluetooth_base_throttle);
@@ -125,18 +129,35 @@ void controller_update_private() {
   controller_actuate_motors();
 }
 
+// This functions handles emergencies stops
+void controller_emergency_stop() {
+  // If it's tilted too much stop
+  if (get_X() < -CONTROLLER_MAX_X || get_X() > CONTROLLER_MAX_X) {
+    controller_stop();
+    printf("Stopped controller because X is out of bound.\n");
+  } else if (get_Y() < -CONTROLLER_MAX_Y || get_Y() > CONTROLLER_MAX_Y) {
+    controller_stop();
+    printf("Stopped controller because Y is out of bound.\n");
+  }
+}
+
+// Stops all motors and resets the pid-controller
+void controller_stop() {
+  stop = true;
+  ESC_NE.writeMicroseconds(1000);
+  ESC_SE.writeMicroseconds(1000);
+  ESC_SW.writeMicroseconds(1000);
+  ESC_NW.writeMicroseconds(1000);
+  controller_reset_controllers();
+}
+
 void controller_actuate_motors() {
   // This is to make sure that the heartbeat signal has arrived in time. If not,
   // stop the motors
   if (1.0 / CONTROLLER_HEARTBEAT_HZ * 1000 + heart_beat_time < millis() ||
       stop) {
-    stop = true;
     // printf("STOP\n");
-    ESC_NE.writeMicroseconds(1000);
-    ESC_SE.writeMicroseconds(1000);
-    ESC_SW.writeMicroseconds(1000);
-    ESC_NW.writeMicroseconds(1000);
-    controller_reset_controllers();
+    controller_stop();
     return;
   }
 
@@ -247,7 +268,8 @@ bool controller_set_height_i(float i) {
 
 void controller_update() {
   if (NULL != controller_task_handle) {
-    xTaskNotify(controller_task_handle, 0, eNoAction);
+    xTaskNotify(controller_task_handle, 0,
+                eNoAction); // Trigget controller_update_private
   }
 }
 

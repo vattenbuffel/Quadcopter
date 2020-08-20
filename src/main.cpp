@@ -6,6 +6,7 @@
 #include "controller.h"
 #include "distance_measurement.h"
 #include "node_red.h"
+#include <MPU9250_asukiaaa.h>
 #include <Servo.h>
 #include <Wire.h>
 
