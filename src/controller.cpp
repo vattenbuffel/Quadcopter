@@ -99,9 +99,6 @@ void controller_start(QueueHandle_t distance_queue,
   pid_height.r = 1;
   pid_height.t_prev = micros();
 
-  // TEMP
-  pid_height.base_throttle = 300;
-  ////////////
 
   // Start the command handler so that the quad can be
   // controlled via bluetooth
@@ -188,10 +185,12 @@ void controller_reset_controllers() {
   pid_NW.IY = 0;
   pid_NW.IZ = 0;
 
-  controller_set_ref_orientation(0, 0, 0);
+  controller_set_ref_orientation(CONTROLLER_ORIENTATION_BASE_REF_X,
+                                 CONTROLLER_ORIENTATION_BASE_REF_Y,
+                                 CONTROLLER_ORIENTATION_BASE_REF_Z);
 
   pid_height.I = 0;
-  change_ref(&pid_height, 0);
+  change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
 }
 
 void controller_motor_calibration_handler() {

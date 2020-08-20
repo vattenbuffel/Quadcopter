@@ -25,9 +25,7 @@ void distance_measurement_task(void *pvParameters);
 void distance_measurement_init(QueueHandle_t distance_queue_input,
                                xSemaphoreHandle wire_lock) {
   wire_lock_distance = wire_lock;
-  printf("disdtance gonan take lock\n");
   xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-  printf("disdtance took lock\n");
   distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
   if (!distance_sensor.init()) {
     xSemaphoreGive(wire_lock_distance);

@@ -77,12 +77,12 @@ void update_throttle(PID_height_t *pid) {
   if (xQueueReceive(pid->distance_queue, &current_height, 0) == pdFALSE)
     return;
 
-  float e =
-      current_height / 100.f - pid->r; // Why div by 100? It's already m right?
+  float e = pid->r - current_height; 
 
   float dt = (micros() - pid->t_prev) / (1000000.f);
   pid->t_prev = micros();
 
   pid->I += e * dt;
+  printf("height I: %f\n", pid->I);
   pid->base_throttle = pid->Kp * e + pid->Ki * pid->I;
 }
