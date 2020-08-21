@@ -48,7 +48,7 @@ void loop() {
   // if(xQueueReceive(command_queue,  &data, 0) == pdTRUE) printf("command:
   // %d\n", data);
 
-  printf("Cur height: %f\n", distance_measurement_get_height());
+  // printf("Cur height: %f\n", distance_measurement_get_height());
 
   // Serial.print("X :");
   // Serial.print(radToDeg(get_X()));
