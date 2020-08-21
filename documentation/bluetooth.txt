@@ -6,8 +6,8 @@ Commands:
 	Right: 2 : Tilts positively around x-axis
 	Down: 3 : Tilts negatively around y-axis
 	Select: 4 : STOP
-	Start: 5 : Starts the motors 
-	Square: 6 : Heartbeat. If it doesn't receive a heartbeat command or any other command in too long the quad will shutdown. This is to stop the quad from going to far away from the controller
+	Start: 5 : Starts the motors/Heartbeat. If it doesn't receive a heartbeat command or any other command in too long the quad will shutdown. This is to stop the quad from going to far away from the controller 
+	Square: 6 : Start regulating height
 	Triangle: 7 : Increase base_thrust
 	Cross: 8 : ESC/motor calibration
 	Circle: 9 : Decrease base_thrust

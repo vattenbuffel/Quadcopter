@@ -83,6 +83,5 @@ void update_throttle(PID_height_t *pid) {
   pid->t_prev = micros();
 
   pid->I += e * dt;
-  // printf("height I: %f\n", pid->I);
   pid->base_throttle = pid->Kp * e + pid->Ki * pid->I;
 }

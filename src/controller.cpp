@@ -11,7 +11,7 @@ Servo ESC_NE, ESC_SE, ESC_SW, ESC_NW;
 PID_height_t pid_height;
 
 unsigned long heart_beat_time;
-bool stop, calibration_active;
+bool stop, calibration_active, height_pid_active;
 float bluetooth_base_throttle;
 
 static TaskHandle_t motor_calibration_handle = NULL;
@@ -34,6 +34,7 @@ void controller_start(QueueHandle_t distance_queue,
                       QueueHandle_t command_queue) {
   stop = true;
   calibration_active = false;
+  height_pid_active = false;
   heart_beat_time = millis();
   bluetooth_base_throttle = 0;
 
@@ -125,7 +126,7 @@ void controller_update_private() {
 
   controller_emergency_stop();
 
-  update_throttle(&pid_height);
+  if(height_pid_active) update_throttle(&pid_height);
   controller_set_base_throtle_orientation(pid_height.base_throttle +
                                           bluetooth_base_throttle);
   controller_update_orientation();
@@ -168,7 +169,6 @@ void controller_actuate_motors() {
   ESC_SE.writeMicroseconds(pid_SE.throttle + 1000.f);
   ESC_SW.writeMicroseconds(pid_SW.throttle + 1000.f);
   ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
-  printf("NW: %f\n", pid_NW.throttle);
 }
 
 void controller_update_orientation() {
@@ -198,24 +198,30 @@ void controller_reset_controllers() {
   pid_NE.IX = 0;
   pid_NE.IY = 0;
   pid_NE.IZ = 0;
+  pid_NE.base_throttle = 0;
 
   pid_SE.IX = 0;
   pid_SE.IY = 0;
   pid_SE.IZ = 0;
+  pid_SE.base_throttle = 0;
 
   pid_SW.IX = 0;
   pid_SW.IY = 0;
   pid_SW.IZ = 0;
+  pid_SW.base_throttle = 0;
 
   pid_NW.IX = 0;
   pid_NW.IY = 0;
   pid_NW.IZ = 0;
+  pid_NW.base_throttle = 0;
 
   controller_set_ref_orientation(CONTROLLER_ORIENTATION_BASE_REF_X,
                                  CONTROLLER_ORIENTATION_BASE_REF_Y,
                                  CONTROLLER_ORIENTATION_BASE_REF_Z);
 
+  height_pid_active = false;
   pid_height.I = CONTROLLER_HEIGHT_PID_START_I;
+  pid_height.base_throttle = 0;
   change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
 }
 
@@ -353,7 +359,8 @@ void controller_command_handler_task(void *pvParameter) {
     } else if (command == command_start) {
       stop = false;
     } else if (command == command_square) {
-      // Heartbeat command. Do nothing
+      height_pid_active = true;
+      pid_height.t_prev = micros();
     } else if (command == command_triangle) {
       bluetooth_base_throttle += CONTROLLER_BASE_THROTTLE_CHANGE;
     } else if (command == command_cross) {
