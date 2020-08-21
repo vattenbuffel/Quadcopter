@@ -97,6 +97,9 @@ void distance_measurement_task(void *pvParameters) {
 
     // Calculate how high above ground the quadcopter is
     height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
+    // TEMP
+    height_m = 1;
+    /////
 
     xQueueOverwrite(distance_queue__, &height_m);
     xSemaphoreTake(latest_height_lock, portMAX_DELAY);
