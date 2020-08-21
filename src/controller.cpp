@@ -37,6 +37,15 @@ void controller_start(QueueHandle_t distance_queue,
   heart_beat_time = millis();
   bluetooth_base_throttle = 0;
 
+  pid_height.distance_queue = distance_queue;
+  pid_height.I = CONTROLLER_HEIGHT_PID_START_I;
+  pid_height.Kp = CONTROLLER_PID_HEIGHT_P;
+  pid_height.Ki = CONTROLLER_PID_HEIGHT_I;
+  pid_height.base_throttle = CONTROLLER_HEIGHT_PID_START_I*CONTROLLER_PID_HEIGHT_I;
+  pid_height.r = 1;
+  pid_height.t_prev = micros();
+
+
   pid_NE.pin = NE_PIN;
   pid_NE.pos = POS_NE;
   pid_NE.t_prev = micros();
@@ -94,13 +103,7 @@ void controller_start(QueueHandle_t distance_queue,
   pid_NW.pos = POS_NW;
   pid_NW.pin = NW_PIN;
 
-  pid_height.base_throttle = 0;
-  pid_height.distance_queue = distance_queue;
-  pid_height.I = 0;
-  pid_height.Kp = CONTROLLER_PID_HEIGHT_P;
-  pid_height.Ki = CONTROLLER_PID_HEIGHT_I;
-  pid_height.r = 1;
-  pid_height.t_prev = micros();
+  
 
   // Start the command handler so that the quad can be
   // controlled via bluetooth
@@ -165,6 +168,7 @@ void controller_actuate_motors() {
   ESC_SE.writeMicroseconds(pid_SE.throttle + 1000.f);
   ESC_SW.writeMicroseconds(pid_SW.throttle + 1000.f);
   ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
+  printf("NW: %f\n", pid_NW.throttle);
 }
 
 void controller_update_orientation() {
@@ -187,7 +191,6 @@ void controller_set_ref_orientation(float rX, float rY, float rZ) {
   change_ref(&pid_SW, rX, rY, rZ);
   change_ref(&pid_NW, rX, rY, rZ);
 }
-
 
 // Resets the pids to their start state
 void controller_reset_controllers() {
@@ -212,7 +215,7 @@ void controller_reset_controllers() {
                                  CONTROLLER_ORIENTATION_BASE_REF_Y,
                                  CONTROLLER_ORIENTATION_BASE_REF_Z);
 
-  pid_height.I = CONTROLLER_HEIGHT_PID_START_THROTTLE;
+  pid_height.I = CONTROLLER_HEIGHT_PID_START_I;
   change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
 }
 
