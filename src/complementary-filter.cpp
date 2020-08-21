@@ -174,3 +174,15 @@ void set_Z(float tmp) {
   Z = tmp;
   xSemaphoreGive(XYZ_lock);
 }
+
+float get_ddx(){
+  return accelX * g;
+}
+
+float get_ddy(){
+  return accelY * g;
+}
+
+float get_ddz(){
+  return accelZ * g;
+}
