@@ -8,8 +8,8 @@
 * D: 0.05
 
 ### Height:
-* P:  
-* I:  
+* P:  0
+* I:  50
 * D: Height pid doesn't have d.
 
 

@@ -66,7 +66,9 @@ float distance_measurement_get_height() {
 void distance_measurement_task(void *pvParameters) {
   for (;;) {
     // Make sure wire is available before reading
+    // printf("distance trying to take wire lock\n");
     xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
+    // printf("distance took wire lock\n");
     height_type distance_m = distance_sensor.readRangeContinuousMillimeters() /
                              1000.f; // Convert mm to m
     xSemaphoreGive(wire_lock_distance);
