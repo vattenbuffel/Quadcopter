@@ -51,7 +51,7 @@ void complementary_filter() {
   // with gamma
   gyrX = (gyrX + X) * gamma;
   gyrY = (gyrY + Y) * gamma;
-  gyrZ = (gyrZ + Z) * 0.99; // Forgetting factor
+  gyrZ = (gyrZ + Z);
 
   // Convert acc to rad
   float accX = accelX * g;

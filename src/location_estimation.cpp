@@ -28,13 +28,27 @@ void location_estimation_update(){
     float dt = (new_update_time - prev_update_time)/1000000.f;
     prev_update_time = new_update_time;
 
-    printf("ddx: %f\n", get_ddx());
+    float ddx = get_ddx();
+    float ddy = get_ddy();
+    float ddz = get_ddz();
+    float X = get_X();
+    float Y = get_Y();
+    float Z = get_Z();
 
-    dx += dt*get_ddx()*cos(get_Z())*cos(get_Y());
+    // Remove the effect of g on the accelerometer readings
+    ddx += ddz*sin(Y)*cos(Z); // maybe change to -= and sin(-Y)
+    ddy += ddz*sin(X)*cos(Z);
+    // printf("ddx correction term: %f\n", ddz*sin(Y)*cos(Z));
+    // printf("ddx: %f\n", ddx);
+    // printf("ddy: %f\n", ddy);
+
+    dx += dt*ddx*cos(Z)*cos(Y);
     x += dx*dt;
     
-    dy += dt*get_ddy()*cos(get_Z())*cos(get_X());
+    dy += dt*ddy*cos(Z)*cos(X);
     y += dy*dt;
+
+    printf("ddx: %f, dx: %f, x: %f\n", ddx, dx, x);
 }   
 
 void location_estimation_task(void *){
