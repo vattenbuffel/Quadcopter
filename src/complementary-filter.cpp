@@ -8,7 +8,7 @@
 MPU9250_asukiaaa mySensor;
 xSemaphoreHandle wire_lock_filter, XYZ_lock;
 float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY,
-    mZ;
+    mZ, accelX_correction, accelY_correction, accelZ_correction, gyroX_correction, gyroY_correction, gyroZ_correction, ddx, ddy, ddz;
 
 float X = 0;
 float Y = 0;
@@ -21,21 +21,27 @@ void filter_task(void *);
 
 // Function implementations
 void compensate() {
-  // printf();
-  accelZ = accelZ;
-  accelY = accelY + 0.0039;
-  accelX = accelX + 0.02;
+  accelZ = accelZ + accelZ_correction;
+  accelY = accelY + accelY_correction;
+  accelX = accelX + accelX_correction;
 
   accelX = -accelX;
   accelY = accelY;
   accelZ = -accelZ;
 
-  gyroX = gyroX - 0.3;
-  gyroZ = gyroZ;
+  gyroX = gyroX + gyroX_correction;
+  gyroY = gyroY + gyroY_correction;
+  gyroZ = gyroZ + gyroZ_correction;
 
   gyroX = -gyroX;
   gyroY = gyroY;
   gyroZ = gyroZ;
+}
+
+// Corrects the readings. Takes the accelerations and removes the effect of g and turns them into the correct frame
+void filter_correct_accelerations(){
+  ddx = accelX - accelZ*sin(-Y)*cos(Z); 
+  ddy = accelY - accelZ*sin(-X)*cos(Z);
 }
 
 void complementary_filter() {
@@ -70,6 +76,7 @@ void complementary_filter() {
   Y = theta + gyrY;
   Z = gyrZ;
   xSemaphoreGive(XYZ_lock);
+  filter_correct_accelerations();
 }
 
 void start_filter(xSemaphoreHandle wire_lock) {
@@ -80,6 +87,13 @@ void start_filter(xSemaphoreHandle wire_lock) {
   mySensor.beginGyro();
   mySensor.beginMag();
   xSemaphoreGive(wire_lock_filter);
+
+  accelX_correction = 0.02;
+  accelY_correction = 0.0039;
+  accelZ_correction = 0;
+  gyroX_correction = -0.3;
+  gyroY_correction = 0;
+  gyroZ_correction = 0;
 
   XYZ_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(XYZ_lock);
@@ -176,13 +190,14 @@ void set_Z(float tmp) {
 }
 
 float get_ddx(){
-  return accelX * g;
+  return ddx;
 }
 
 float get_ddy(){
-  return accelY * g;
+  return ddy;
 }
 
 float get_ddz(){
-  return accelZ * g;
+  printf("ERROR: get_ddz() is not fully implemented\n");
+  return ddz;
 }
