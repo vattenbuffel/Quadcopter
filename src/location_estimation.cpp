@@ -30,22 +30,11 @@ void location_estimation_update(){
 
     float ddx = get_ddx();
     float ddy = get_ddy();
-    // float ddz = get_ddz();
-    // float X = get_X();
-    // float Y = get_Y();
-    // float Z = get_Z();
 
-    // // Remove the effect of g on the accelerometer readings
-    // ddx -= ddz*sin(-Y)*cos(Z); // maybe change to -= and sin(-Y)
-    // ddy -= ddz*sin(-X)*cos(Z);
-    // // printf("ddx correction term: %f\n", ddz*sin(Y)*cos(Z));
-    // // printf("ddx: %f\n", ddx);
-    // // printf("ddy: %f\n", ddy);
-
-    dx += dt*ddx;//*cos(Z)*cos(Y);
+    dx += dt*ddx;
     x += dx*dt;
     
-    dy += dt*ddy;//*cos(Z)*cos(X);
+    dy += dt*ddy;
     y += dy*dt;
 
     printf("ddx: %f, dx: %f, x: %f\n", ddx, dx, x);

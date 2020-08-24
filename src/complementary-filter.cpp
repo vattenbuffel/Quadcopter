@@ -8,7 +8,8 @@
 MPU9250_asukiaaa mySensor;
 xSemaphoreHandle wire_lock_filter, XYZ_lock;
 float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY,
-    mZ, accelX_correction, accelY_correction, accelZ_correction, gyroX_correction, gyroY_correction, gyroZ_correction, ddx, ddy, ddz;
+    mZ, accelX_correction, accelY_correction, accelZ_correction,
+    gyroX_correction, gyroY_correction, gyroZ_correction, ddx, ddy, ddz;
 
 float X = 0;
 float Y = 0;
@@ -38,10 +39,16 @@ void compensate() {
   gyroZ = gyroZ;
 }
 
-// Corrects the readings. Takes the accelerations and removes the effect of g and turns them into the correct frame
-void filter_correct_accelerations(){
-  ddx = accelX - accelZ*sin(-Y)*cos(Z); 
-  ddy = accelY - accelZ*sin(-X)*cos(Z);
+// Corrects the readings. Takes the accelerations and removes the effect of g
+// and turns them into the correct frame
+void filter_correct_accelerations() {
+
+  ddx = 9.81*accelX - g * sin(-Y) * cos(Z);
+  ddy = 9.81*accelY - g * sin(X) * cos(Z);
+
+  // printf("AccelX: %f\n", accelX);
+  // printf("Correction term: %f\n", - g*sin(-Y)*cos(Z));
+  // printf("ddx: %f\tddy: %f\n", ddx, ddy);
 }
 
 void complementary_filter() {
@@ -76,7 +83,6 @@ void complementary_filter() {
   Y = theta + gyrY;
   Z = gyrZ;
   xSemaphoreGive(XYZ_lock);
-  filter_correct_accelerations();
 }
 
 void start_filter(xSemaphoreHandle wire_lock) {
@@ -142,7 +148,7 @@ void filter_task(void *) {
 
     // If the orientation was updated then update the controller
     if (updated_orientation) {
-      // printf("Gonna update controller\n");
+      filter_correct_accelerations();
       controller_update();
       vTaskDelay(1.f / FILTER_UPDATE_HZ * 1000 /
                  portTICK_RATE_MS); // Only wait if estimation is updated
@@ -189,15 +195,11 @@ void set_Z(float tmp) {
   xSemaphoreGive(XYZ_lock);
 }
 
-float get_ddx(){
-  return ddx;
-}
+float get_ddx() { return ddx; }
 
-float get_ddy(){
-  return ddy;
-}
+float get_ddy() { return ddy; }
 
-float get_ddz(){
+float get_ddz() {
   printf("ERROR: get_ddz() is not fully implemented\n");
   return ddz;
 }
