@@ -61,8 +61,4 @@ void loop() {
   // Serial.print(radToDeg(get_Y()));
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> estimate-location
