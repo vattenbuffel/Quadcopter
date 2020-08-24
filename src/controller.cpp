@@ -138,10 +138,10 @@ void controller_emergency_stop() {
   // If it's tilted too much stop
   if (get_X() < -CONTROLLER_MAX_X || get_X() > CONTROLLER_MAX_X) {
     controller_stop();
-    printf("Stopped controller because X is out of bound.\n");
+    // printf("Stopped controller because X is out of bound.\n");
   } else if (get_Y() < -CONTROLLER_MAX_Y || get_Y() > CONTROLLER_MAX_Y) {
     controller_stop();
-    printf("Stopped controller because Y is out of bound.\n");
+    // printf("Stopped controller because Y is out of bound.\n");
   }
 }
 

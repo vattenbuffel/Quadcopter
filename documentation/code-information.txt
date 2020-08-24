@@ -11,5 +11,6 @@ Core1 should run:
 Core0 should run:
 	Complementary filter, priority: 5
 	PID-controller, priority: 5
+	location_estimation, priority 4
 
 

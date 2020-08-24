@@ -8,7 +8,8 @@
 MPU9250_asukiaaa mySensor;
 xSemaphoreHandle wire_lock_filter, XYZ_lock;
 float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY,
-    mZ;
+    mZ, accelX_correction, accelY_correction, accelZ_correction,
+    gyroX_correction, gyroY_correction, gyroZ_correction, ddx, ddy, ddz;
 
 float X = 0;
 float Y = 0;
@@ -21,21 +22,33 @@ void filter_task(void *);
 
 // Function implementations
 void compensate() {
-  // printf();
-  accelZ = accelZ;
-  accelY = accelY + 0.0039;
-  accelX = accelX + 0.02;
+  accelZ = accelZ + accelZ_correction;
+  accelY = accelY + accelY_correction;
+  accelX = accelX + accelX_correction;
 
   accelX = -accelX;
   accelY = accelY;
   accelZ = -accelZ;
 
-  gyroX = gyroX - 0.3;
-  gyroZ = gyroZ;
+  gyroX = gyroX + gyroX_correction;
+  gyroY = gyroY + gyroY_correction;
+  gyroZ = gyroZ + gyroZ_correction;
 
   gyroX = -gyroX;
   gyroY = gyroY;
   gyroZ = gyroZ;
+}
+
+// Corrects the readings. Takes the accelerations and removes the effect of g
+// and turns them into the correct frame
+void filter_correct_accelerations() {
+
+  ddx = 9.81*accelX - g * sin(-Y) * cos(Z);
+  ddy = 9.81*accelY - g * sin(X) * cos(Z);
+
+  // printf("AccelX: %f\n", accelX);
+  // printf("Correction term: %f\n", - g*sin(-Y)*cos(Z));
+  // printf("ddx: %f\tddy: %f\n", ddx, ddy);
 }
 
 void complementary_filter() {
@@ -51,7 +64,7 @@ void complementary_filter() {
   // with gamma
   gyrX = (gyrX + X) * gamma;
   gyrY = (gyrY + Y) * gamma;
-  gyrZ = (gyrZ + Z) * 0.99; // Forgetting factor
+  gyrZ = (gyrZ + Z);
 
   // Convert acc to rad
   float accX = accelX * g;
@@ -80,6 +93,13 @@ void start_filter(xSemaphoreHandle wire_lock) {
   mySensor.beginGyro();
   mySensor.beginMag();
   xSemaphoreGive(wire_lock_filter);
+
+  accelX_correction = 0.02;
+  accelY_correction = 0.0039;
+  accelZ_correction = 0;
+  gyroX_correction = -0.3;
+  gyroY_correction = 0;
+  gyroZ_correction = 0;
 
   XYZ_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(XYZ_lock);
@@ -128,7 +148,7 @@ void filter_task(void *) {
 
     // If the orientation was updated then update the controller
     if (updated_orientation) {
-      // printf("Gonna update controller\n");
+      filter_correct_accelerations();
       controller_update();
       vTaskDelay(1.f / FILTER_UPDATE_HZ * 1000 /
                  portTICK_RATE_MS); // Only wait if estimation is updated
@@ -173,4 +193,13 @@ void set_Z(float tmp) {
   xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   Z = tmp;
   xSemaphoreGive(XYZ_lock);
+}
+
+float get_ddx() { return ddx; }
+
+float get_ddy() { return ddy; }
+
+float get_ddz() {
+  printf("ERROR: get_ddz() is not fully implemented\n");
+  return ddz;
 }
