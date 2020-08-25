@@ -3,7 +3,3 @@ Send error messages via mqtt to the topic "error"
 Try to estimate location in space. Start doing this using only the imu and see how that works. Improve this.
 
 Update node-red flow json file
-
-SUG KUK
-
-Fix pid_height so that it doesn't keep track of it's own distance queue. Controller should do this.
