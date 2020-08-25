@@ -12,7 +12,7 @@
 #include "location_estimation.h"
 
 // This dictates if data should be published on node-red
-// #define NODE_RED
+#define NODE_RED
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
@@ -37,7 +37,7 @@ void setup() {
   distance_queue = xQueueCreate(1, sizeof(height_type));
   distance_measurement_init(distance_queue, wire_lock);
 
-  location_estimation_start();
+  // location_estimation_start();
   
   controller_start(distance_queue, command_queue);
 

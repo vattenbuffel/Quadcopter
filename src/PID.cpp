@@ -71,13 +71,9 @@ void change_base_throttle(PID_orientation_t *pid, float base_throttle) {
 
 void change_ref(PID_height_t *pid, float r) { pid->r = r; }
 
-void update_throttle(PID_height_t *pid) {
-  height_type current_height;
+void update_throttle(PID_height_t *pid, height_type height) {
 
-  if (xQueueReceive(pid->distance_queue, &current_height, 0) == pdFALSE)
-    return;
-
-  float e = pid->r - current_height; 
+  float e = pid->r - height; 
 
   float dt = (micros() - pid->t_prev) / (1000000.f);
   pid->t_prev = micros();

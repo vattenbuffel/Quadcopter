@@ -16,6 +16,7 @@ float bluetooth_base_throttle;
 
 static TaskHandle_t motor_calibration_handle = NULL;
 static TaskHandle_t controller_task_handle = NULL;
+QueueHandle_t distance_queue_controller;
 
 // Private functions
 void controller_update_orientation();
@@ -37,15 +38,16 @@ void controller_start(QueueHandle_t distance_queue,
   height_pid_active = false;
   heart_beat_time = millis();
   bluetooth_base_throttle = 0;
+  distance_queue_controller = distance_queue;
 
-  pid_height.distance_queue = distance_queue;
   pid_height.I = CONTROLLER_HEIGHT_PID_START_I;
   pid_height.Kp = CONTROLLER_PID_HEIGHT_P;
   pid_height.Ki = CONTROLLER_PID_HEIGHT_I;
-  pid_height.base_throttle = CONTROLLER_HEIGHT_PID_START_I*CONTROLLER_PID_HEIGHT_I;
+  pid_height.base_throttle =
+      CONTROLLER_HEIGHT_PID_START_I * CONTROLLER_PID_HEIGHT_I;
   pid_height.r = 1;
   pid_height.t_prev = micros();
-
+  update_throttle(&pid_height, pid_height.r);
 
   pid_NE.pin = NE_PIN;
   pid_NE.pos = POS_NE;
@@ -55,7 +57,7 @@ void controller_start(QueueHandle_t distance_queue,
   pid_NE.Kp = CONTROLLER_PID_ORIENTATION_P;
   pid_NE.Kd = CONTROLLER_PID_ORIENTATION_D;
   pid_NE.IX = pid_NE.IY = pid_NE.IZ = 0;
-  pid_NE.base_throttle = 0;
+  pid_NE.base_throttle = pid_height.base_throttle;
   pid_NE.max_throttle = CONTROLLER_MAX_THROTTLE;
   pid_NE.min_throttle = CONTROLLER_MIN_THROTTLE;
 
@@ -104,8 +106,6 @@ void controller_start(QueueHandle_t distance_queue,
   pid_NW.pos = POS_NW;
   pid_NW.pin = NW_PIN;
 
-  
-
   // Start the command handler so that the quad can be
   // controlled via bluetooth
   xTaskCreatePinnedToCore(
@@ -126,7 +126,11 @@ void controller_update_private() {
 
   controller_emergency_stop();
 
-  if(height_pid_active) update_throttle(&pid_height);
+  height_type current_height;
+  if (height_pid_active &&
+      xQueueReceive(distance_queue_controller, &current_height, 0) == pdFALSE)
+    update_throttle(&pid_height, current_height);
+
   controller_set_base_throtle_orientation(pid_height.base_throttle +
                                           bluetooth_base_throttle);
   controller_update_orientation();
@@ -169,6 +173,7 @@ void controller_actuate_motors() {
   ESC_SE.writeMicroseconds(pid_SE.throttle + 1000.f);
   ESC_SW.writeMicroseconds(pid_SW.throttle + 1000.f);
   ESC_NW.writeMicroseconds(pid_NW.throttle + 1000.f);
+  // printf("NW.base: %f\n", pid_NW.base_throttle);
 }
 
 void controller_update_orientation() {
@@ -194,35 +199,35 @@ void controller_set_ref_orientation(float rX, float rY, float rZ) {
 
 // Resets the pids to their start state
 void controller_reset_controllers() {
-  // printf("reset controllers\n");
-  pid_NE.IX = 0;
-  pid_NE.IY = 0;
-  pid_NE.IZ = 0;
-  pid_NE.base_throttle = 0;
-
-  pid_SE.IX = 0;
-  pid_SE.IY = 0;
-  pid_SE.IZ = 0;
-  pid_SE.base_throttle = 0;
-
-  pid_SW.IX = 0;
-  pid_SW.IY = 0;
-  pid_SW.IZ = 0;
-  pid_SW.base_throttle = 0;
-
-  pid_NW.IX = 0;
-  pid_NW.IY = 0;
-  pid_NW.IZ = 0;
-  pid_NW.base_throttle = 0;
-
-  controller_set_ref_orientation(CONTROLLER_ORIENTATION_BASE_REF_X,
-                                 CONTROLLER_ORIENTATION_BASE_REF_Y,
-                                 CONTROLLER_ORIENTATION_BASE_REF_Z);
-
   height_pid_active = false;
   pid_height.I = CONTROLLER_HEIGHT_PID_START_I;
   pid_height.base_throttle = 0;
   change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
+  update_throttle(&pid_height, pid_height.r);
+  
+  pid_NE.IX = 0;
+  pid_NE.IY = 0;
+  pid_NE.IZ = 0;
+  pid_NE.base_throttle = pid_height.base_throttle;
+
+  pid_SE.IX = 0;
+  pid_SE.IY = 0;
+  pid_SE.IZ = 0;
+  pid_SE.base_throttle = pid_height.base_throttle;
+
+  pid_SW.IX = 0;
+  pid_SW.IY = 0;
+  pid_SW.IZ = 0;
+  pid_SW.base_throttle = pid_height.base_throttle;
+
+  pid_NW.IX = 0;
+  pid_NW.IY = 0;
+  pid_NW.IZ = 0;
+  pid_NW.base_throttle = pid_height.base_throttle;
+
+  controller_set_ref_orientation(CONTROLLER_ORIENTATION_BASE_REF_X,
+                                 CONTROLLER_ORIENTATION_BASE_REF_Y,
+                                 CONTROLLER_ORIENTATION_BASE_REF_Z);
 }
 
 void controller_motor_calibration_handler() {

@@ -2,6 +2,7 @@
 #define PID_H_
 
 #include <Arduino.h>
+#include "distance_measurement.h"
 
 typedef enum {
   POS_NE,
@@ -24,7 +25,6 @@ typedef struct PID_height_t {
   float Kp, Ki, I;
   float r; // in m
   long t_prev;
-  QueueHandle_t distance_queue;
 };
 
 void update_throttle(PID_orientation_t *pid);
@@ -32,7 +32,7 @@ void limit_throttle(PID_orientation_t *pid);
 void change_ref(PID_orientation_t *pid, float rX, float rY, float rZ);
 void change_base_throttle(PID_orientation_t *pid, float base_throttle);
 
-void update_throttle(PID_height_t *pid);
+void update_throttle(PID_height_t *pid, height_type height);
 void change_ref(PID_height_t *pid, float r);
 
 #endif // PID_H_
