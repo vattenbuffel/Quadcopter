@@ -256,7 +256,7 @@ bool controller_set_orientation_p(float p) {
 }
 
 bool controller_set_orientation_i(float i) {
-  pid_NE.Kp = i;
+  pid_NE.Ki = i;
   pid_NW.Ki = i;
   pid_SE.Ki = i;
   pid_SW.Ki = i;
