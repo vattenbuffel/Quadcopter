@@ -5,11 +5,11 @@
 #include "complementary-filter.h"
 #include "controller.h"
 #include "distance_measurement.h"
+#include "location_estimation.h"
 #include "node_red.h"
 #include <MPU9250_asukiaaa.h>
 #include <Servo.h>
 #include <Wire.h>
-#include "location_estimation.h"
 
 // This dictates if data should be published on node-red
 #define NODE_RED
@@ -38,10 +38,8 @@ void setup() {
   distance_measurement_init(distance_queue, wire_lock);
 
   // location_estimation_start();
-  
+
   controller_start(distance_queue, command_queue);
-
-
 
 #ifdef NODE_RED
   node_red_start();

@@ -109,15 +109,37 @@ void node_red_publish(const char *topic, const char *data) {
 // Publishes the orientation and height pid throttles and X, Y and height values to
 // their topics.
 void node_red_publish_controller_info() {
-  char number_c[50];
-  sprintf(number_c, "%f", controller_get_NE().throttle);
-  node_red_publish("NE", number_c);
-  sprintf(number_c, "%f", controller_get_SE().throttle);
-  node_red_publish("SE", number_c);
-  sprintf(number_c, "%f", controller_get_NW().throttle);
-  node_red_publish("NW", number_c);
-  sprintf(number_c, "%f", controller_get_SW().throttle);
-  node_red_publish("SW", number_c);
+  char number_c[150];
+  
+  // Publish information about NE
+  PID_orientation_t pid_orientation = controller_get_NE(); 
+  sprintf(number_c, "%f", pid_orientation.throttle);
+  node_red_publish("NE", number_c);  
+  sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
+  node_red_publish("NE-PID", number_c);
+
+
+// Publish information about SE  
+  pid_orientation = controller_get_SE(); 
+  sprintf(number_c, "%f", pid_orientation.throttle);
+  node_red_publish("SE", number_c);  
+  sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
+  node_red_publish("SE-PID", number_c);
+
+// Publish information about NW
+  pid_orientation = controller_get_NW(); 
+  sprintf(number_c, "%f", pid_orientation.throttle);
+  node_red_publish("NW", number_c);  
+  sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
+  node_red_publish("NW-PID", number_c);
+
+// Publish information about NW
+  pid_orientation = controller_get_SW(); 
+  sprintf(number_c, "%f", pid_orientation.throttle);
+  node_red_publish("SW", number_c);  
+  sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
+  node_red_publish("SW-PID", number_c);
+
 
   sprintf(number_c, "%f", controller_get_height_pid().base_throttle);
   node_red_publish("HPID", number_c);

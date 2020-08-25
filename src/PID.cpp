@@ -25,24 +25,43 @@ void update_throttle(PID_orientation_t *pid) {
   pid->e_prev_Y = eY;
 
   // Calc throttle with controller placement in mind
+  float p_effect, i_effect, d_effect;
   float throttle = pid->base_throttle;
   if (pid->pos == POS_NE) {
-    throttle += -pid->Kp * eX - pid->Kp * eY;
-    throttle += -pid->Ki * pid->IX - pid->Ki * pid->IY;
-    throttle += -pid->Kd * DX - pid->Kd * DY;
+    p_effect = -pid->Kp * eX - pid->Kp * eY;
+    i_effect = -pid->Ki * pid->IX - pid->Ki * pid->IY;
+    d_effect = -pid->Kd * DX - pid->Kd * DY;
+    // throttle += -pid->Kp * eX - pid->Kp * eY;
+    // throttle += -pid->Ki * pid->IX - pid->Ki * pid->IY;
+    // throttle += -pid->Kd * DX - pid->Kd * DY;
   } else if (pid->pos == POS_SE) {
-    throttle += -pid->Kp * eX + pid->Kp * eY;
-    throttle += -pid->Ki * pid->IX + pid->Ki * pid->IY;
-    throttle += -pid->Kd * DX + pid->Kd * DY;
+    p_effect = -pid->Kp * eX + pid->Kp * eY;
+    i_effect = -pid->Ki * pid->IX + pid->Ki * pid->IY;
+    d_effect = -pid->Kd * DX + pid->Kd * DY;
+
+    // throttle += -pid->Kp * eX + pid->Kp * eY;
+    // throttle += -pid->Ki * pid->IX + pid->Ki * pid->IY;
+    // throttle += -pid->Kd * DX + pid->Kd * DY;
   } else if (pid->pos == POS_SW) {
-    throttle += pid->Kp * eX + pid->Kp * eY;
-    throttle += pid->Ki * pid->IX + pid->Ki * pid->IY;
-    throttle += pid->Kd * DX + pid->Kd * DY;
+    p_effect = pid->Kp * eX + pid->Kp * eY;
+    i_effect = pid->Ki * pid->IX + pid->Ki * pid->IY;
+    d_effect = pid->Kd * DX + pid->Kd * DY;
+    // throttle += pid->Kp * eX + pid->Kp * eY;
+    // throttle += pid->Ki * pid->IX + pid->Ki * pid->IY;
+    // throttle += pid->Kd * DX + pid->Kd * DY;
   } else if (pid->pos == POS_NW) {
-    throttle += pid->Kp * eX - pid->Kp * eY;
-    throttle += pid->Ki * pid->IX - pid->Ki * pid->IY;
-    throttle += pid->Kd * DX - pid->Kd * DY;
+    p_effect = pid->Kp * eX - pid->Kp * eY;
+    i_effect = pid->Ki * pid->IX - pid->Ki * pid->IY;
+    d_effect = pid->Kd * DX - pid->Kd * DY;
+    // throttle += pid->Kp * eX - pid->Kp * eY;
+    // throttle += pid->Ki * pid->IX - pid->Ki * pid->IY;
+    // throttle += pid->Kd * DX - pid->Kd * DY;
   }
+  throttle += p_effect + i_effect + d_effect;
+
+  pid->prev_p_effect = p_effect;
+  pid->prev_i_effect = i_effect;
+  pid->prev_d_effect = d_effect;
 
   pid->throttle = throttle;
 
@@ -73,7 +92,7 @@ void change_ref(PID_height_t *pid, float r) { pid->r = r; }
 
 void update_throttle(PID_height_t *pid, height_type height) {
 
-  float e = pid->r - height; 
+  float e = pid->r - height;
 
   float dt = (micros() - pid->t_prev) / (1000000.f);
   pid->t_prev = micros();

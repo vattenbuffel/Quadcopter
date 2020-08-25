@@ -40,11 +40,10 @@ void controller_start(QueueHandle_t distance_queue,
   bluetooth_base_throttle = 0;
   distance_queue_controller = distance_queue;
 
-  pid_height.I = CONTROLLER_HEIGHT_PID_START_I;
+  pid_height.I =
+      CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL / CONTROLLER_PID_HEIGHT_I;
   pid_height.Kp = CONTROLLER_PID_HEIGHT_P;
   pid_height.Ki = CONTROLLER_PID_HEIGHT_I;
-  pid_height.base_throttle =
-      CONTROLLER_HEIGHT_PID_START_I * CONTROLLER_PID_HEIGHT_I;
   pid_height.r = 1;
   pid_height.t_prev = micros();
   update_throttle(&pid_height, pid_height.r);
@@ -200,11 +199,11 @@ void controller_set_ref_orientation(float rX, float rY, float rZ) {
 // Resets the pids to their start state
 void controller_reset_controllers() {
   height_pid_active = false;
-  pid_height.I = CONTROLLER_HEIGHT_PID_START_I;
+  pid_height.I = CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL / pid_height.Ki;
   pid_height.base_throttle = 0;
   change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
   update_throttle(&pid_height, pid_height.r);
-  
+
   pid_NE.IX = 0;
   pid_NE.IY = 0;
   pid_NE.IZ = 0;

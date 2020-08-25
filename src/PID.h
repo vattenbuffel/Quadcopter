@@ -16,6 +16,7 @@ typedef struct PID_orientation_t {
   float throttle, base_throttle, min_throttle, max_throttle;
   float Kp, Ki, Kd, IX, IY, IZ, e_prev_X, e_prev_Y, e_prev_Z;
   float rX, rY, rZ; // in rad
+  float prev_p_effect, prev_i_effect, prev_d_effect;
   long t_prev;
   position pos;
 };

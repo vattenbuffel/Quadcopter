@@ -39,13 +39,28 @@ void compensate() {
   gyroZ = gyroZ;
 }
 
-// Corrects the readings. Takes the accelerations and removes the effect of g
-// and turns them into the correct frame
-void filter_correct_accelerations() {
+// Takes the accelerations and removes the effect of g and turns them into the
+// world frame
+void filter_calc_accelerations_world_frame() {
 
-  ddx = 9.81*accelX - g * sin(-Y) * cos(Z);
-  ddy = 9.81*accelY - g * sin(X) * cos(Z);
+  // Remove the effect of g
+  float ddx_body_frame = 9.81 * accelX - g * sin(-Y) * cos(Z);
+  float ddy_body_frame = 9.81 * accelY - g * sin(X) * cos(Z);
+  //  float ddz_body_frame = ??;
 
+  // Add the effect of the accelerations in body x-dir
+  ddx = ddx_body_frame * cos(Y) * cos(Z);
+  // ddy = ddx_body_frame * ?;
+
+  // Add the effect of the accelerations in body y-dir
+  ddx +=  ddy_body_frame * sin(Z) * sin(Y);
+  // ddy += ddy_body_frame * ?;
+
+  // Add the effect of the accelerations in body z-dir
+  // ddx += ddz_body_frame * ?;
+  // ddy += ddz_body_frame * ?;
+
+  // printf("ddx: %f\n", ddx);
   // printf("AccelX: %f\n", accelX);
   // printf("Correction term: %f\n", - g*sin(-Y)*cos(Z));
   // printf("ddx: %f\tddy: %f\n", ddx, ddy);
@@ -148,7 +163,7 @@ void filter_task(void *) {
 
     // If the orientation was updated then update the controller
     if (updated_orientation) {
-      filter_correct_accelerations();
+      filter_calc_accelerations_world_frame();
       controller_update();
       vTaskDelay(1.f / FILTER_UPDATE_HZ * 1000 /
                  portTICK_RATE_MS); // Only wait if estimation is updated
