@@ -109,12 +109,12 @@ void start_filter(xSemaphoreHandle wire_lock) {
   mySensor.beginMag();
   xSemaphoreGive(wire_lock_filter);
 
-  accelX_correction = 0.02;
-  accelY_correction = 0.0039;
-  accelZ_correction = 0;
-  gyroX_correction = -0.3;
-  gyroY_correction = 0;
-  gyroZ_correction = 0;
+  accelX_correction = -0.008054409495549;
+  accelY_correction = -0.009032411473788;
+  accelZ_correction = -0.012852250244348;
+  gyroX_correction = -0.138294016798419;
+  gyroY_correction = 0.191549025691701;
+  gyroZ_correction = -0.137208373517786;
 
   XYZ_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(XYZ_lock);

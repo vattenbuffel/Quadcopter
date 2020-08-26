@@ -27,6 +27,25 @@ void setup() {
 
   printf("\nStarted!\n");
 
+  Servo ESC_NEm, ESC_SEm, ESC_SWm, ESC_NWm;
+  ESC_NEm.attach(
+      NE_PIN, -1, 0, 180, 1000,
+      2000); // (pin, min pulse width, max pulse width in microseconds)
+  ESC_NEm.writeMicroseconds(1050);
+  ESC_NWm.attach(
+      NE_PIN, -1, 0, 180, 1000,
+      2000); // (pin, min pulse width, max pulse width in microseconds)
+  ESC_NWm.writeMicroseconds(1050);
+  ESC_SEm.attach(
+      NE_PIN, -1, 0, 180, 1000,
+      2000); // (pin, min pulse width, max pulse width in microseconds)
+  ESC_SEm.writeMicroseconds(1050);
+  ESC_SWm.attach(
+      NE_PIN, -1, 0, 180, 1000,
+      2000); // (pin, min pulse width, max pulse width in microseconds)
+  ESC_SWm.writeMicroseconds(1050);
+  for(;;){}
+
   wire_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(wire_lock);
   start_filter(wire_lock);
