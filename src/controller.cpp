@@ -318,7 +318,7 @@ void controller_motor_calibration_task(void *pvParameter) {
     ESC_SE.writeMicroseconds(2000.f);
     ESC_SW.writeMicroseconds(2000.f);
     ESC_NW.writeMicroseconds(2000.f);
-    printf("\n\n\n\n\n\n\nPlug in the battery.\nOnce two rapid beeps are heard "
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\nPlug in the battery.\nOnce two rapid beeps are heard "
            "press calibration button again.\n");
 
     // Set throttle low
@@ -328,9 +328,15 @@ void controller_motor_calibration_task(void *pvParameter) {
     ESC_SW.writeMicroseconds(1000.f);
     ESC_NW.writeMicroseconds(1000.f);
 
-    printf("\n\n\n\n\n\n\nDone with calibration.\nYou should now restart the "
-           "mcu.\n");
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDone with calibration.\nAll motors will spin in 5 seconds. If not, restart the mcu and redo the calibration.\n");
     delay(5000);
+
+    ESC_NE.writeMicroseconds(1100.f);
+    ESC_SE.writeMicroseconds(1100.f);
+    ESC_SW.writeMicroseconds(1100.f);
+    ESC_NW.writeMicroseconds(1100.f);
+    for(;;){vTaskDelay(1000000);}
+
     calibration_active = false;
     vTaskDelete(NULL);
   }
