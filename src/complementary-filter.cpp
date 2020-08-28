@@ -34,8 +34,8 @@ void compensate() {
   gyroY = gyroY + gyroY_correction;
   gyroZ = gyroZ + gyroZ_correction;
 
-  gyroX = -gyroX;
-  gyroY = gyroY;
+  gyroX = gyroX;
+  gyroY = -gyroY;
   gyroZ = gyroZ;
 }
 
@@ -67,8 +67,8 @@ void filter_calc_accelerations_world_frame() {
 }
 
 void complementary_filter() {
-  float h = 0.002;
-  float alpha = 0.1;
+  float h = 0.002; // About 1/512
+  float alpha = 0.9;
   float gamma = alpha / (h + alpha);
 
   float gyrX = degToRad(gyroX) * h;
