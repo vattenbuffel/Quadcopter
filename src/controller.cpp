@@ -139,6 +139,7 @@ void controller_update_private() {
 
 // This functions handles emergencies stops
 void controller_emergency_stop() {
+  bool active = !stop;
   bool stopped = false;
   
   // If it's tilted too much stop
@@ -152,14 +153,16 @@ void controller_emergency_stop() {
     // printf("Stopped controller because Y is out of bound.\n");
   }
 
-  // If it emergency stopped publish the latest information. It's done on core 1 to prevent filter and controller from being stopped
-  if(stopped)
-    xTaskCreatePinnedToCore(controller_publish_information, "emergency-stop-publisher", configMINIMAL_STACK_SIZE*2, NULL, 1, NULL, 1);
+  // If the controller was active and emergency stopped publish the latest controller information. It's done on core 1 to prevent filter and controller from being stopped
+  if(stopped & active)
+    xTaskCreatePinnedToCore(controller_publish_information, "em-st-pub", configMINIMAL_STACK_SIZE*3, NULL, 1, NULL, 1);
 }
 
 void controller_publish_information(void*){
-  node_red_publish_controller_info();
-  vTaskDelete(NULL);
+  for(;;){
+    node_red_publish_controller_info();
+    vTaskDelete(NULL);
+  }
 }
 
 // Stops all motors and resets the pid-controller

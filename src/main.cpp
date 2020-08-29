@@ -53,8 +53,8 @@ void loop() {
 
   // Serial.print("X :");
   // Serial.print(radToDeg(get_X()));
-  Serial.print("  Y :");
-  Serial.print(radToDeg(get_Y()));
+  // Serial.print("  Y :");
+  // Serial.print(radToDeg(get_Y()));
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
 }
