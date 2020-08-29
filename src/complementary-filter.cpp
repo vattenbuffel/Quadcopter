@@ -68,7 +68,7 @@ void filter_calc_accelerations_world_frame() {
 
 void complementary_filter() {
   float h = 0.002; // About 1/512
-  float alpha = 0.9;
+  float alpha = 0.5;
   float gamma = alpha / (h + alpha);
 
   float gyrX = degToRad(gyroX) * h;

@@ -30,6 +30,7 @@ void controller_motor_calibration_task(void *pvParameter);
 void controller_update_task(void *);
 void controller_stop();
 void controller_emergency_stop();
+void controller_publish_information(void*);
 
 void controller_start(QueueHandle_t distance_queue,
                       QueueHandle_t command_queue) {
@@ -138,14 +139,27 @@ void controller_update_private() {
 
 // This functions handles emergencies stops
 void controller_emergency_stop() {
+  bool stopped = false;
+  
   // If it's tilted too much stop
   if (get_X() < -CONTROLLER_MAX_X || get_X() > CONTROLLER_MAX_X) {
     controller_stop();
+    stopped = true;
     // printf("Stopped controller because X is out of bound.\n");
   } else if (get_Y() < -CONTROLLER_MAX_Y || get_Y() > CONTROLLER_MAX_Y) {
     controller_stop();
+    stopped = true;
     // printf("Stopped controller because Y is out of bound.\n");
   }
+
+  // If it emergency stopped publish the latest information. It's done on core 1 to prevent filter and controller from being stopped
+  if(stopped)
+    xTaskCreatePinnedToCore(controller_publish_information, "emergency-stop-publisher", configMINIMAL_STACK_SIZE*2, NULL, 1, NULL, 1);
+}
+
+void controller_publish_information(void*){
+  node_red_publish_controller_info();
+  vTaskDelete(NULL);
 }
 
 // Stops all motors and resets the pid-controller
