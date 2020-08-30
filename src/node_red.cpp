@@ -157,6 +157,7 @@ void node_red_start() {
                           configMINIMAL_STACK_SIZE * 5, NULL, 1, NULL, 1);
 }
 
+// This task is run on core 1 so that all of the stuff is started runs on core 1
 void node_red_starter_task(void *) {
   started = true;
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -204,6 +205,7 @@ void node_red_starter_task(void *) {
 // received mqtt messages are handled.
 void node_red_task(void *) {
   for (;;) {
+    // printf("node-red publish task\n");
     if (publish_task_publish && !controller_stopped()) {
       node_red_publish_controller_info();
     }

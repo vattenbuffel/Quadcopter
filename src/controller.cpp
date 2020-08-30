@@ -154,12 +154,14 @@ void controller_emergency_stop() {
   }
 
   // If the controller was active and emergency stopped publish the latest controller information. It's done on core 1 to prevent filter and controller from being stopped
-  if(stopped & active)
+  if(stopped & active){
     xTaskCreatePinnedToCore(controller_publish_information, "em-st-pub", configMINIMAL_STACK_SIZE*3, NULL, 1, NULL, 1);
+  }
 }
 
 void controller_publish_information(void*){
   for(;;){
+    printf("Emergency stop\n");
     node_red_publish_controller_info();
     vTaskDelete(NULL);
   }
@@ -178,8 +180,7 @@ void controller_stop() {
 void controller_actuate_motors() {
   // This is to make sure that the heartbeat signal has arrived in time. If not,
   // stop the motors
-  if (1.0 / CONTROLLER_HEARTBEAT_HZ * 1000 + heart_beat_time < millis() ||
-      stop) {
+  if (1.0 / CONTROLLER_HEARTBEAT_HZ * 1000 + heart_beat_time < millis() || stop) {
     // printf("STOP\n");
     controller_stop();
     return;
@@ -308,6 +309,7 @@ void controller_update() {
 void controller_update_task(void *) {
   for (;;) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    // printf("controller-task\n");
     controller_update_private();
   }
 }
