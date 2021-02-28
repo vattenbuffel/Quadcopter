@@ -5,6 +5,7 @@
 #include "complementary-filter.h"
 #include <Wire.h>
 #include <math.h>
+#include "controller.h"
 
 QueueHandle_t distance_queue__;
 VL53L0X distance_sensor;
@@ -12,7 +13,7 @@ VL53L0X distance_sensor;
 xSemaphoreHandle wire_lock_distance;
 unsigned long distance_last_time_update;
 
-float latest_height = 1;
+float latest_height = CONTROLLER_HEIGHT_BASE_REF;
 xSemaphoreHandle latest_height_lock = NULL;
 
 // Private functions
@@ -100,7 +101,7 @@ void distance_measurement_task(void *pvParameters) {
     // Calculate how high above ground the quadcopter is
     height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
     // TEMP
-    height_m = 0.5;
+    height_m = CONTROLLER_HEIGHT_BASE_REF;
     /////
 
     xQueueOverwrite(distance_queue__, &height_m);

@@ -31,33 +31,21 @@ void update_throttle(PID_orientation_t *pid) {
     p_effect = -pid->Kp * eX - pid->Kp * eY;
     i_effect = -pid->Ki * pid->IX - pid->Ki * pid->IY;
     d_effect = -pid->Kd * DX - pid->Kd * DY;
-    // printf("set NE i_effect to: %f, it's Ki = %f\n", i_effect, pid->Ki);
     
-    // throttle += -pid->Kp * eX - pid->Kp * eY;
-    // throttle += -pid->Ki * pid->IX - pid->Ki * pid->IY;
-    // throttle += -pid->Kd * DX - pid->Kd * DY;
   } else if (pid->pos == POS_SE) {
     p_effect = -pid->Kp * eX + pid->Kp * eY;
     i_effect = -pid->Ki * pid->IX + pid->Ki * pid->IY;
     d_effect = -pid->Kd * DX + pid->Kd * DY;
 
-    // throttle += -pid->Kp * eX + pid->Kp * eY;
-    // throttle += -pid->Ki * pid->IX + pid->Ki * pid->IY;
-    // throttle += -pid->Kd * DX + pid->Kd * DY;
   } else if (pid->pos == POS_SW) {
     p_effect = pid->Kp * eX + pid->Kp * eY;
     i_effect = pid->Ki * pid->IX + pid->Ki * pid->IY;
     d_effect = pid->Kd * DX + pid->Kd * DY;
-    // throttle += pid->Kp * eX + pid->Kp * eY;
-    // throttle += pid->Ki * pid->IX + pid->Ki * pid->IY;
-    // throttle += pid->Kd * DX + pid->Kd * DY;
+    
   } else if (pid->pos == POS_NW) {
     p_effect = pid->Kp * eX - pid->Kp * eY;
     i_effect = pid->Ki * pid->IX - pid->Ki * pid->IY;
     d_effect = pid->Kd * DX - pid->Kd * DY;
-    // throttle += pid->Kp * eX - pid->Kp * eY;
-    // throttle += pid->Ki * pid->IX - pid->Ki * pid->IY;
-    // throttle += pid->Kd * DX - pid->Kd * DY;
   }
   else{
     printf("ERROR: Incorrect motor position\n");

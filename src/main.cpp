@@ -24,38 +24,39 @@ void setup() {
   Wire.begin();
 
   printf("\nStarted!\n");
-  delay(1000);
-  Servo NE, SE, SW, NW;
-  bool pin_error = false;
-  pin_error = !NE.attach(
-      NE_PIN, -1, 0, 180, 1000,
-      2000); // (pin, min pulse width, max pulse width in microseconds)
-  NE.writeMicroseconds(1050);
-  pin_error =
-      pin_error ||
-      !SE.attach(
-          SE_PIN, -1, 0, 180, 1000,
-          2000); // (pin, min pulse width, max pulse width in microseconds)
-  SE.writeMicroseconds(1050);
-  pin_error =
-      pin_error ||
-      !SW.attach(
-          SW_PIN, -1, 0, 180, 1000,
-          2000); // (pin, min pulse width, max pulse width in microseconds)
-  SW.writeMicroseconds(1050);
-  pin_error =
-      pin_error ||
-      !NW.attach(
-          NW_PIN, -1, 0, 180, 1000,
-          2000); // (pin, min pulse width, max pulse width in microseconds)
-  NW.writeMicroseconds(1050);
+  // delay(1000);
+  // Servo NE, SE, SW, NW;
+  // bool pin_error = false;
+  // int speed = 1400;
+  // pin_error = !NE.attach(
+  //     NE_PIN, -1, 0, 180, 1000,
+  //     2000); // (pin, min pulse width, max pulse width in microseconds)
+  // NE.writeMicroseconds(speed);
+  // pin_error =
+  //     pin_error ||
+  //     !SE.attach(
+  //         SE_PIN, -1, 0, 180, 1000,
+  //         2000); // (pin, min pulse width, max pulse width in microseconds)
+  // SE.writeMicroseconds(speed);
+  // pin_error =
+  //     pin_error ||
+  //     !SW.attach(
+  //         SW_PIN, -1, 0, 180, 1000,
+  //         2000); // (pin, min pulse width, max pulse width in microseconds)
+  // SW.writeMicroseconds(speed);
+  // pin_error =
+  //     pin_error ||
+  //     !NW.attach(
+  //         NW_PIN, -1, 0, 180, 1000,
+  //         2000); // (pin, min pulse width, max pulse width in microseconds)
+  // NW.writeMicroseconds(speed);
+
 
   // vTaskDelay(5000/portTICK_RATE_MS);
   // NW.writeMicroseconds(1000);
   // SW.writeMicroseconds(1000);
   // SE.writeMicroseconds(1000);
   // NE.writeMicroseconds(1000);
-
 
 
 
