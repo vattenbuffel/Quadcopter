@@ -112,7 +112,7 @@ void node_red_publish(const char *topic, const char *data) {
 
 void node_red_publish_orientation(){
   char pid_msg[1000]; // 1000 is probably big enough
-  sprintf(pid_msg, "x:%f y:%f z:%f", get_X(), get_Y(), get_Z());
+  sprintf(pid_msg, "X:%f Y:%f Z:%f", radToDeg(get_X()), radToDeg(get_Y()), radToDeg(get_Z()));
   node_red_publish(NODE_RED_GET_ORIENTATION_TOPIC_RECEIVE, pid_msg);
 }
 
