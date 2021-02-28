@@ -14,6 +14,7 @@ void node_red_starter_task(void *);
 bool node_red_sub_to_topics();
 bool node_red_mqtt_connect();
 void node_red_publish_pid_params();
+void node_red_publish_orientation();
 
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
@@ -79,6 +80,9 @@ void callback(char *topic, byte *message, unsigned int length) {
   } else if (strcmp(topic, NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND) == 0) {
     node_red_publish_pid_params();
   }
+  else if(strcmp(topic, NODE_RED_GET_ORIENTATION_TOPIC_SEND) == 0) node_red_publish_orientation();
+  
+
 }
 
 void node_red_publish_pid_params() {
@@ -104,6 +108,12 @@ void node_red_publish(const char *topic, const char *data) {
   } else {
     // printf("successfully sent %s to %s\n", data, topic);
   }
+}
+
+void node_red_publish_orientation(){
+  char pid_msg[1000]; // 1000 is probably big enough
+  sprintf(pid_msg, "x:%f y:%f z:%f", get_X(), get_Y(), get_Z());
+  node_red_publish(NODE_RED_GET_ORIENTATION_TOPIC_RECEIVE, pid_msg);
 }
 
 // Publishes the orientation and height pid throttles and X, Y and height values to
@@ -247,6 +257,7 @@ bool node_red_sub_to_topics() {
   err &= mqtt_client.subscribe(NODE_RED_SET_HEIGHT_P_TOPIC, 1);
   err &= mqtt_client.subscribe(NODE_RED_SET_HEIGHT_I_TOPIC, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND, 1);
+  err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_TOPIC_SEND, 1);
   return err;
 }
 

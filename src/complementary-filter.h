@@ -4,7 +4,14 @@
 #define degToRad(angleInDegrees) ((angleInDegrees)*M_PI / 180.0)
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / M_PI)
 
-#define FILTER_UPDATE_HZ 1000
+#define  AX_CORR -0.003
+#define  AY_CORR  0.023
+#define  AZ_CORR -0.043
+#define  GX_CORR  0.35
+#define  GY_CORR  0.06
+#define  GZ_CORR -0.73
+
+#define FILTER_UPDATE_HZ 5000
 
 #include "FreeRTOS.h"
 

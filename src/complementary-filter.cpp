@@ -2,14 +2,14 @@
 #include "FreeRTOS.h"
 #include "controller.h"
 #include <MPU9250_asukiaaa.h>
+#include "SensorFusion.h"
 
-#define g -9.81
+#define g 9.81
 
 MPU9250_asukiaaa mySensor;
+SF fusion;
 xSemaphoreHandle wire_lock_filter, XYZ_lock;
-float accelX, accelY, accelZ, aSqrt, gyroX, gyroY, gyroZ, mDirection, mX, mY,
-    mZ, accelX_correction, accelY_correction, accelZ_correction,
-    gyroX_correction, gyroY_correction, gyroZ_correction, ddx, ddy, ddz;
+float ax, ay, az, gx, gy, gz;
 
 float X = 0;
 float Y = 0;
@@ -21,84 +21,7 @@ void set_Z(float);
 void filter_task(void *);
 
 // Function implementations
-void compensate() {
-  accelZ = accelZ + accelZ_correction;
-  accelY = accelY + accelY_correction;
-  accelX = accelX + accelX_correction;
 
-  accelX = -accelX;
-  accelY = accelY;
-  accelZ = -accelZ;
-
-  gyroX = gyroX + gyroX_correction;
-  gyroY = gyroY + gyroY_correction;
-  gyroZ = gyroZ + gyroZ_correction;
-
-  gyroX = gyroX;
-  gyroY = -gyroY;
-  gyroZ = gyroZ;
-}
-
-// Takes the accelerations and removes the effect of g and turns them into the
-// world frame
-void filter_calc_accelerations_world_frame() {
-
-  // Remove the effect of g
-  float ddx_body_frame = 9.81 * accelX - g * sin(-Y) * cos(Z);
-  float ddy_body_frame = 9.81 * accelY - g * sin(X) * cos(Z);
-  //  float ddz_body_frame = ??;
-
-  // Add the effect of the accelerations in body x-dir
-  ddx = ddx_body_frame * cos(Y) * cos(Z);
-  // ddy = ddx_body_frame * ?;
-
-  // Add the effect of the accelerations in body y-dir
-  ddx +=  ddy_body_frame * sin(Z) * sin(Y);
-  // ddy += ddy_body_frame * ?;
-
-  // Add the effect of the accelerations in body z-dir
-  // ddx += ddz_body_frame * ?;
-  // ddy += ddz_body_frame * ?;
-
-  // printf("ddx: %f\n", ddx);
-  // printf("AccelX: %f\n", accelX);
-  // printf("Correction term: %f\n", - g*sin(-Y)*cos(Z));
-  // printf("ddx: %f\tddy: %f\n", ddx, ddy);
-}
-
-void complementary_filter() {
-  float h = 0.002; // About 1/512
-  float alpha = 0.5;
-  float gamma = alpha / (h + alpha);
-
-  float gyrX = degToRad(gyroX) * h;
-  float gyrY = degToRad(gyroY) * h;
-  float gyrZ = degToRad(gyroZ) * h;
-
-  // Add previous estimated angles to gyro estimated angle change and multiply
-  // with gamma
-  gyrX = (gyrX + X) * gamma;
-  gyrY = (gyrY + Y) * gamma;
-  gyrZ = (gyrZ + Z);
-
-  // Convert acc to rad
-  float accX = accelX * g;
-  float accY = accelY * g;
-  float accZ = accelZ * g;
-
-  float phi = atan2(accY, accZ);
-  float theta = atan2(-accX, sqrt(pow(accY, 2) + pow(accZ, 2)));
-
-  phi = phi * (1 - gamma);
-  theta = theta * (1 - gamma);
-
-  // Add the estimations of the gyro and accelerometer
-  xSemaphoreTake(XYZ_lock, portMAX_DELAY);
-  X = phi + gyrX;
-  Y = theta + gyrY;
-  Z = gyrZ;
-  xSemaphoreGive(XYZ_lock);
-}
 
 void start_filter(xSemaphoreHandle wire_lock) {
   wire_lock_filter = wire_lock;
@@ -109,12 +32,6 @@ void start_filter(xSemaphoreHandle wire_lock) {
   mySensor.beginMag();
   xSemaphoreGive(wire_lock_filter);
 
-  accelX_correction = -0.008054409495549;
-  accelY_correction = -0.009032411473788;
-  accelZ_correction = -0.012852250244348;
-  gyroX_correction = -0.138294016798419;
-  gyroY_correction = 0.191549025691701;
-  gyroZ_correction = -0.137208373517786;
 
   XYZ_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(XYZ_lock);
@@ -137,17 +54,53 @@ bool update_filter() {
 
   // It's time to update, wire is available and there is new data. Estimate
   // orientation
-  accelX = mySensor.accelX();
-  accelY = mySensor.accelY();
-  accelZ = mySensor.accelZ();
-  gyroX = mySensor.gyroX();
-  gyroY = mySensor.gyroY();
-  gyroZ = mySensor.gyroZ();
-  xSemaphoreGive(wire_lock_filter);
+    ax = mySensor.accelX();
+    ay = mySensor.accelY();
+    az = mySensor.accelZ();
 
-  // Take the readings and convert them into the wanted coordinate frame
-  compensate();
-  complementary_filter();
+    gx = mySensor.gyroX();
+    gy = mySensor.gyroY();
+    gz = mySensor.gyroZ();
+    xSemaphoreGive(wire_lock_filter);
+    
+    az = az + AZ_CORR;
+    ay = ay + AY_CORR;
+    ax = ax + AX_CORR;
+
+    ax = -ax*g;
+    ay = ay*g;
+    az = -az*g;
+    
+    
+
+    gx = gx + GX_CORR;
+    gy = gy + GY_CORR;
+    gz = gz + GZ_CORR;
+
+    gx = degToRad(gx);
+    gy = degToRad(-gy);
+    gz = degToRad(gz);
+
+    
+    float deltat = fusion.deltatUpdate();
+    // fusion.MahonyUpdate(gx, gy, gz, ax, ay, az, 0, 0, 0, deltat); // mahony is suggested if there isn't the mag
+    fusion.MadgwickUpdate(gx, gy, gz, ax, ay, az, 0, 0, 0, deltat); //else use the magwick
+
+    float roll = fusion.getRoll();
+    if (roll < 180) 
+        roll += 180;
+    else    roll -= 180;
+    if (roll > 180) roll-=360;
+     
+    float pitch = fusion.getPitch();
+    float yaw = fusion.getYaw();
+
+    xSemaphoreTake(XYZ_lock, portMAX_DELAY);
+    X = degToRad(roll);
+    Y = degToRad(-pitch);
+    Z = degToRad(-yaw);
+    xSemaphoreGive(XYZ_lock);
+
   return true;
 }
 
@@ -163,7 +116,6 @@ void filter_task(void *) {
 
     // If the orientation was updated then update the controller
     if (updated_orientation) {
-      filter_calc_accelerations_world_frame();
       controller_update();
       vTaskDelay(1.f / FILTER_UPDATE_HZ * 1000 /
                  portTICK_RATE_MS); // Only wait if estimation is updated
@@ -210,11 +162,3 @@ void set_Z(float tmp) {
   xSemaphoreGive(XYZ_lock);
 }
 
-float get_ddx() { return ddx; }
-
-float get_ddy() { return ddy; }
-
-float get_ddz() {
-  printf("ERROR: get_ddz() is not fully implemented\n");
-  return ddz;
-}

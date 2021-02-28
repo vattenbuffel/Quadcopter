@@ -11,6 +11,8 @@
 #define NODE_RED_SET_HEIGHT_I_TOPIC "height-i"
 #define NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND "get-pid-param-send"
 #define NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE "get-pid-param-receive"
+#define NODE_RED_GET_ORIENTATION_TOPIC_SEND "get-orientation-send"
+#define NODE_RED_GET_ORIENTATION_TOPIC_RECEIVE "get-orientation-receive"
 
 
 void node_red_start();
