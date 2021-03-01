@@ -41,7 +41,7 @@ void controller_start(QueueHandle_t distance_queue,
   bluetooth_base_throttle = 0;
   distance_queue_controller = distance_queue;
 
-  pid_height.I = CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL / CONTROLLER_PID_HEIGHT_I;// If it starts at zero then it hasn't got enough lift to actually change it's orientation
+  pid_height.I = CONTROLLER_HEIGHT_PID_START_I;// If it starts at zero then it hasn't got enough lift to actually change it's orientation
   pid_height.Kp = CONTROLLER_PID_HEIGHT_P;
   pid_height.Ki = CONTROLLER_PID_HEIGHT_I;
   pid_height.r = CONTROLLER_HEIGHT_BASE_REF;
@@ -154,7 +154,7 @@ void controller_emergency_stop() {
 
   // If the controller was active and emergency stopped publish the latest controller information. It's done on core 1 to prevent filter and controller from being stopped
   if(stopped & active){
-    xTaskCreatePinnedToCore(controller_publish_information, "em-st-pub", configMINIMAL_STACK_SIZE*3, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(controller_publish_information, "em-st-pub", configMINIMAL_STACK_SIZE*4, NULL, 1, NULL, 1);
   }
 }
 

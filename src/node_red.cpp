@@ -15,6 +15,7 @@ bool node_red_sub_to_topics();
 bool node_red_mqtt_connect();
 void node_red_publish_pid_params();
 void node_red_publish_orientation();
+void node_red_publish_height();
 
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
@@ -81,7 +82,7 @@ void callback(char *topic, byte *message, unsigned int length) {
     node_red_publish_pid_params();
   }
   else if(strcmp(topic, NODE_RED_GET_ORIENTATION_TOPIC_SEND) == 0) node_red_publish_orientation();
-  
+  else if(strcmp(topic, NODE_RED_GET_HEIGHT_TOPIC_SEND) == 0) node_red_publish_height();
 
 }
 
@@ -114,6 +115,12 @@ void node_red_publish_orientation(){
   char pid_msg[1000]; // 1000 is probably big enough
   sprintf(pid_msg, "X:%f Y:%f Z:%f", radToDeg(get_X()), radToDeg(get_Y()), radToDeg(get_Z()));
   node_red_publish(NODE_RED_GET_ORIENTATION_TOPIC_RECEIVE, pid_msg);
+}
+
+void node_red_publish_height(){
+  char pid_msg[1000]; // 1000 is probably big enough
+  sprintf(pid_msg, "Height: %f", distance_measurement_get_height());
+  node_red_publish(NODE_RED_GET_HEIGHT_TOPIC_RECEIVE, pid_msg);
 }
 
 // Publishes the orientation and height pid throttles and X, Y and height values to
@@ -258,6 +265,7 @@ bool node_red_sub_to_topics() {
   err &= mqtt_client.subscribe(NODE_RED_SET_HEIGHT_I_TOPIC, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_TOPIC_SEND, 1);
+  err &= mqtt_client.subscribe(NODE_RED_GET_HEIGHT_TOPIC_SEND, 1);
   return err;
 }
 

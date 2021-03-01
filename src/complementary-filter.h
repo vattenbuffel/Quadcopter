@@ -11,7 +11,7 @@
 #define  GY_CORR  0.06
 #define  GZ_CORR -0.73
 
-#define FILTER_UPDATE_HZ 5000
+#define FILTER_UPDATE_HZ 1000
 
 #include "FreeRTOS.h"
 

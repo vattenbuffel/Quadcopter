@@ -117,9 +117,10 @@ void filter_task(void *) {
     // If the orientation was updated then update the controller
     if (updated_orientation) {
       controller_update();
-      vTaskDelay(1.f / FILTER_UPDATE_HZ * 1000 /
-                 portTICK_RATE_MS); // Only wait if estimation is updated
+      // vTaskDelay(1.f / FILTER_UPDATE_HZ * 1000 /
+      //            portTICK_RATE_MS); // Only wait if estimation is updated
     }
+    vTaskDelay(1);
   }
 }
 

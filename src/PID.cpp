@@ -85,6 +85,7 @@ void change_base_throttle(PID_orientation_t *pid, float base_throttle) {
 void change_ref(PID_height_t *pid, float r) { pid->r = r; }
 
 void update_throttle(PID_height_t *pid, height_type height) {
+  printf("Updating height throttle from: %f", pid->base_throttle);
 
   float e = pid->r - height;
 
@@ -93,4 +94,7 @@ void update_throttle(PID_height_t *pid, height_type height) {
 
   pid->I += e * dt;
   pid->base_throttle = pid->Kp * e + pid->Ki * pid->I;
+
+  
+  printf(", to: %f\n", pid->base_throttle);
 }

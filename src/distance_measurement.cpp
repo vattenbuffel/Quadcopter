@@ -25,8 +25,11 @@ void distance_measurement_task(void *pvParameters);
 // Inits the distance measurement
 void distance_measurement_init(QueueHandle_t distance_queue_input,
                                xSemaphoreHandle wire_lock) {
+  printf("Starting distance sensor\n");
   wire_lock_distance = wire_lock;
+  // printf("Waiting for wirelock\n");
   xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
+  // printf("got wirelock\n");
   distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
   if (!distance_sensor.init()) {
     xSemaphoreGive(wire_lock_distance);
@@ -99,9 +102,10 @@ void distance_measurement_task(void *pvParameters) {
     }*/
 
     // Calculate how high above ground the quadcopter is
-    height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
+    // height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
     // TEMP
-    height_m = CONTROLLER_HEIGHT_BASE_REF;
+    height_type height_m = distance_m;
+    // height_m = CONTROLLER_HEIGHT_BASE_REF;
     /////
 
     xQueueOverwrite(distance_queue__, &height_m);
