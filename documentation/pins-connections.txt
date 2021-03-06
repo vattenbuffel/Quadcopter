@@ -1,0 +1,32 @@
+Motors:
+	Cable color  : Motor : Pin
+	White        : NW    : 15
+	Blue/Green   : NE    : 2
+	Orange/Blue  : SE    : 4
+	White/Yellow : SW    : 0
+
+
+Wire: 
+	Used by orientation-estimation
+	pins:
+		SDA: 21(Standard)
+		SCL: 22(Standard)
+		
+Wire1:
+	Used by distance-measurements:
+	pins:
+		SDA: 25
+		SCL: 26
+
+
+
+
+
+
+
+
+
+
+
+
+
