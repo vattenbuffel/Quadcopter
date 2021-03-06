@@ -8,7 +8,7 @@
 
 // Defines /////////////////////////////////////////////////////////////////////
 
-// The Arduino two-wire interface uses a 7-bit number for the address,
+// The Arduino two-Wire1 interface uses a 7-bit number for the address,
 // and sets the last bit correctly based on reads and writes
 #define ADDRESS_DEFAULT 0b0101001
 
@@ -39,6 +39,14 @@ VL53L0X::VL53L0X(void)
   , io_timeout(0) // no timeout
   , did_timeout(false)
 {
+
+  // TEST BY NOA
+  // I changed all Wire to Wire1
+  Wire1.begin(25, 26, 100000);
+  
+  
+  // END TEST BY NOA
+
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
@@ -60,6 +68,8 @@ void VL53L0X::setAddress(uint8_t new_addr)
 bool VL53L0X::init(bool io_2v8)
 {
   // VL53L0X_DataInit() begin
+
+
 
   // sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
   if (io_2v8)
@@ -281,32 +291,32 @@ bool VL53L0X::init(bool io_2v8)
 // Write an 8-bit register
 void VL53L0X::writeReg(uint8_t reg, uint8_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write(value);
-  last_status = Wire.endTransmission();
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
+  Wire1.write(value);
+  last_status = Wire1.endTransmission();
 }
 
 // Write a 16-bit register
 void VL53L0X::writeReg16Bit(uint8_t reg, uint16_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write((value >> 8) & 0xFF); // value high byte
-  Wire.write( value       & 0xFF); // value low byte
-  last_status = Wire.endTransmission();
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
+  Wire1.write((value >> 8) & 0xFF); // value high byte
+  Wire1.write( value       & 0xFF); // value low byte
+  last_status = Wire1.endTransmission();
 }
 
 // Write a 32-bit register
 void VL53L0X::writeReg32Bit(uint8_t reg, uint32_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write((value >> 24) & 0xFF); // value highest byte
-  Wire.write((value >> 16) & 0xFF);
-  Wire.write((value >>  8) & 0xFF);
-  Wire.write( value        & 0xFF); // value lowest byte
-  last_status = Wire.endTransmission();
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
+  Wire1.write((value >> 24) & 0xFF); // value highest byte
+  Wire1.write((value >> 16) & 0xFF);
+  Wire1.write((value >>  8) & 0xFF);
+  Wire1.write( value        & 0xFF); // value lowest byte
+  last_status = Wire1.endTransmission();
 }
 
 // Read an 8-bit register
@@ -314,12 +324,12 @@ uint8_t VL53L0X::readReg(uint8_t reg)
 {
   uint8_t value;
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
+  last_status = Wire1.endTransmission();
 
-  Wire.requestFrom(address, (uint8_t)1);
-  value = Wire.read();
+  Wire1.requestFrom(address, (uint8_t)1);
+  value = Wire1.read();
 
   return value;
 }
@@ -329,13 +339,13 @@ uint16_t VL53L0X::readReg16Bit(uint8_t reg)
 {
   uint16_t value;
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
+  last_status = Wire1.endTransmission();
 
-  Wire.requestFrom(address, (uint8_t)2);
-  value  = (uint16_t)Wire.read() << 8; // value high byte
-  value |=           Wire.read();      // value low byte
+  Wire1.requestFrom(address, (uint8_t)2);
+  value  = (uint16_t)Wire1.read() << 8; // value high byte
+  value |=           Wire1.read();      // value low byte
 
   return value;
 }
@@ -345,15 +355,15 @@ uint32_t VL53L0X::readReg32Bit(uint8_t reg)
 {
   uint32_t value;
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
+  last_status = Wire1.endTransmission();
 
-  Wire.requestFrom(address, (uint8_t)4);
-  value  = (uint32_t)Wire.read() << 24; // value highest byte
-  value |= (uint32_t)Wire.read() << 16;
-  value |= (uint16_t)Wire.read() <<  8;
-  value |=           Wire.read();       // value lowest byte
+  Wire1.requestFrom(address, (uint8_t)4);
+  value  = (uint32_t)Wire1.read() << 24; // value highest byte
+  value |= (uint32_t)Wire1.read() << 16;
+  value |= (uint16_t)Wire1.read() <<  8;
+  value |=           Wire1.read();       // value lowest byte
 
   return value;
 }
@@ -362,30 +372,30 @@ uint32_t VL53L0X::readReg32Bit(uint8_t reg)
 // starting at the given register
 void VL53L0X::writeMulti(uint8_t reg, uint8_t const * src, uint8_t count)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
 
   while (count-- > 0)
   {
-    Wire.write(*(src++));
+    Wire1.write(*(src++));
   }
 
-  last_status = Wire.endTransmission();
+  last_status = Wire1.endTransmission();
 }
 
 // Read an arbitrary number of bytes from the sensor, starting at the given
 // register, into the given array
 void VL53L0X::readMulti(uint8_t reg, uint8_t * dst, uint8_t count)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  Wire1.beginTransmission(address);
+  Wire1.write(reg);
+  last_status = Wire1.endTransmission();
 
-  Wire.requestFrom(address, count);
+  Wire1.requestFrom(address, count);
 
   while (count-- > 0)
   {
-    *(dst++) = Wire.read();
+    *(dst++) = Wire1.read();
   }
 }
 

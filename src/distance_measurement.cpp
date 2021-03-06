@@ -10,7 +10,7 @@
 QueueHandle_t distance_queue__;
 VL53L0X distance_sensor;
 
-xSemaphoreHandle wire_lock_distance;
+// xSemaphoreHandle wire_lock_distance;
 unsigned long distance_last_time_update;
 
 float latest_height = CONTROLLER_HEIGHT_BASE_REF;
@@ -26,20 +26,22 @@ void distance_measurement_task(void *pvParameters);
 void distance_measurement_init(QueueHandle_t distance_queue_input,
                                xSemaphoreHandle wire_lock) {
   printf("Starting distance sensor\n");
-  wire_lock_distance = wire_lock;
-  // printf("Waiting for wirelock\n");
-  xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-  // printf("got wirelock\n");
+  // wire_lock_distance = wire_lock;
+  // printf("distance Waiting for wirelock\n");
+  // xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
+  // printf("distance got wirelock\n");
   distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
   if (!distance_sensor.init()) {
-    xSemaphoreGive(wire_lock_distance);
+    // printf("distance gave wire_lock\n");
+    // xSemaphoreGive(wire_lock_distance);
     printf("Failed to init distance sensor, VL53L0X\n");
     for (;;) {
     }
   }
   printf("Distance sensor initialized\n");
   distance_sensor.startContinuous();
-  xSemaphoreGive(wire_lock_distance);
+  // printf("distance gave wire_lock\n");
+  // xSemaphoreGive(wire_lock_distance);
 
   distance_queue__ = distance_queue_input;
 
@@ -71,11 +73,13 @@ void distance_measurement_task(void *pvParameters) {
   for (;;) {
     // Make sure wire is available before reading
     // printf("distance trying to take wire lock\n");
-    xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
+    // xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
     // printf("distance took wire lock\n");
     height_type distance_m = distance_sensor.readRangeContinuousMillimeters() /
                              1000.f; // Convert mm to m
-    xSemaphoreGive(wire_lock_distance);
+    
+    // printf("distance gave wire_lock\n");
+    // xSemaphoreGive(wire_lock_distance);
 
     // If the read distance is too big, i.e. the quad is too high or the
     // measurement freaks out, set the read value to a safe value rather than
@@ -102,9 +106,9 @@ void distance_measurement_task(void *pvParameters) {
     }*/
 
     // Calculate how high above ground the quadcopter is
-    // height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
+    height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
     // TEMP
-    height_type height_m = distance_m;
+    // height_type height_m = distance_m;
     // height_m = CONTROLLER_HEIGHT_BASE_REF;
     /////
 

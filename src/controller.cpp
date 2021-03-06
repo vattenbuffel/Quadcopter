@@ -154,7 +154,7 @@ void controller_emergency_stop() {
 
   // If the controller was active and emergency stopped publish the latest controller information. It's done on core 1 to prevent filter and controller from being stopped
   if(stopped & active){
-    xTaskCreatePinnedToCore(controller_publish_information, "em-st-pub", configMINIMAL_STACK_SIZE*4, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(controller_publish_information, "em-st-pub", configMINIMAL_STACK_SIZE*15, NULL, 1, NULL, 1);
   }
 }
 
