@@ -23,26 +23,18 @@ void distance_measurement_task(void *pvParameters);
 // Functions implementations
 
 // Inits the distance measurement
-void distance_measurement_init(QueueHandle_t distance_queue_input,
-                               xSemaphoreHandle wire_lock) {
+void distance_measurement_init(QueueHandle_t distance_queue_input) {
   printf("Starting distance sensor\n");
-  // wire_lock_distance = wire_lock;
-  // printf("distance Waiting for wirelock\n");
-  // xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-  // printf("distance got wirelock\n");
+  Wire1.begin(WIRE1_SDA_PIN_NR, WIRE1_SCL_PIN_NR, 100000);
   distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
   if (!distance_sensor.init()) {
-    // printf("distance gave wire_lock\n");
-    // xSemaphoreGive(wire_lock_distance);
     printf("Failed to init distance sensor, VL53L0X\n");
     for (;;) {
     }
   }
   printf("Distance sensor initialized\n");
   distance_sensor.startContinuous();
-  // printf("distance gave wire_lock\n");
-  // xSemaphoreGive(wire_lock_distance);
-
+  
   distance_queue__ = distance_queue_input;
 
   latest_height_lock = xSemaphoreCreateBinary();
@@ -71,16 +63,9 @@ float distance_measurement_get_height() {
 // dictates.
 void distance_measurement_task(void *pvParameters) {
   for (;;) {
-    // Make sure wire is available before reading
-    // printf("distance trying to take wire lock\n");
-    // xSemaphoreTake(wire_lock_distance, portMAX_DELAY);
-    // printf("distance took wire lock\n");
     height_type distance_m = distance_sensor.readRangeContinuousMillimeters() /
                              1000.f; // Convert mm to m
     
-    // printf("distance gave wire_lock\n");
-    // xSemaphoreGive(wire_lock_distance);
-
     // If the read distance is too big, i.e. the quad is too high or the
     // measurement freaks out, set the read value to a safe value rather than
     // the max which it's output as.

@@ -42,9 +42,6 @@ VL53L0X::VL53L0X(void)
 
   // TEST BY NOA
   // I changed all Wire to Wire1
-  Wire1.begin(25, 26, 100000);
-  
-  
   // END TEST BY NOA
 
 }

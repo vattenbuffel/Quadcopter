@@ -8,7 +8,7 @@
 
 MPU9250_asukiaaa mySensor;
 SF fusion;
-xSemaphoreHandle /*wire_lock_filter,*/ XYZ_lock;
+xSemaphoreHandle  XYZ_lock;
 float ax, ay, az, gx, gy, gz;
 
 float X = 0;
@@ -23,17 +23,11 @@ void filter_task(void *);
 // Function implementations
 
 
-void start_filter(xSemaphoreHandle wire_lock) {
-  // wire_lock_filter = wire_lock;
-  // printf("filter wants wire_lock\n");
-  // xSemaphoreTake(wire_lock_filter, portMAX_DELAY);
-  // printf("Filter got wire_lock\n");
+void start_filter() {
   mySensor.setWire(&Wire);
   mySensor.beginAccel();
   mySensor.beginGyro();
   mySensor.beginMag();
-  // printf("Filter gave wire_lock\n");
-  // xSemaphoreGive(wire_lock_filter);
 
 
   XYZ_lock = xSemaphoreCreateBinary();
@@ -44,19 +38,12 @@ void start_filter(xSemaphoreHandle wire_lock) {
 }
 
 bool update_filter() {
-  // Make sure wire is available
-  // printf("filter trying to take wire_lock\n");
-  // xSemaphoreTake(wire_lock_filter, portMAX_DELAY);
-  // printf("filter took wire_lock\n");
-
   // check if there's new data
   if (mySensor.accelUpdate() != 0 || mySensor.gyroUpdate() != 0) {
-    // printf("Filter gave wire_lock\n");
-    // xSemaphoreGive(wire_lock_filter);
     return false;
   }
 
-  // It's time to update, wire is available and there is new data. Estimate
+  // It's time to update, and there is new data. Estimate
   // orientation
     ax = mySensor.accelX();
     ay = mySensor.accelY();
@@ -65,8 +52,6 @@ bool update_filter() {
     gx = mySensor.gyroX();
     gy = mySensor.gyroY();
     gz = mySensor.gyroZ();
-    // printf("Filter gave wire_lock\n");
-    // xSemaphoreGive(wire_lock_filter);
     
     az = az + AZ_CORR;
     ay = ay + AY_CORR;

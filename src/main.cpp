@@ -17,7 +17,6 @@
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
 
-xSemaphoreHandle wire_lock;
 
 void setup() {
   Serial.begin(115200);
@@ -57,15 +56,13 @@ void setup() {
   // SE.writeMicroseconds(1000);
   // NE.writeMicroseconds(1000);
 
-  wire_lock = xSemaphoreCreateBinary();
-  xSemaphoreGive(wire_lock);
-  start_filter(wire_lock);
+  start_filter();
 
   command_queue = xQueueCreate(10, sizeof(int));
   command_init(command_queue);
 
   distance_queue = xQueueCreate(1, sizeof(height_type));
-  distance_measurement_init(distance_queue, wire_lock);
+  distance_measurement_init(distance_queue);
 
   // location_estimation_start();
 

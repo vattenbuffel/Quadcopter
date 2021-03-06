@@ -24,7 +24,7 @@ float get_ddx();
 float get_ddy();
 float get_ddz();
 
-void start_filter(xSemaphoreHandle wire_lock);
+void start_filter();
 bool update_filter();
 
 
