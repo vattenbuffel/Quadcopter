@@ -2,7 +2,7 @@
 #include "FreeRTOS.h"
 #include "PID.h"
 #include "command.h"
-#include "complementary-filter.h"
+#include "orientation-estimation.h"
 #include "controller.h"
 #include "distance_measurement.h"
 #include "location_estimation.h"
@@ -56,7 +56,7 @@ void setup() {
   // SE.writeMicroseconds(1000);
   // NE.writeMicroseconds(1000);
 
-  start_filter();
+  start_orientation_estimation();
 
   command_queue = xQueueCreate(10, sizeof(int));
   command_init(command_queue);
@@ -92,47 +92,3 @@ void loop() {
 
 
 
-
-
-
-
-
-
-
-// #include "Arduino.h"
-// #include "FreeRTOS.h"
-// #include "VL53L0X.h"
-// #include <Wire.h>
-
-// VL53L0X distance_sensor_;
-
-// void setup() {
-//   Serial.begin(115200);
-//   // Wire.begin();
-//   // TwoWire test_wire = TwoWire(0);
-//   // Wire1.begin(26, 25, 100000);
-
-  
-//   // VL53L0X distance_sensor_ = VL53L0X(&Wire1);
-
-//   distance_sensor_.setTimeout(1000);
-//   if (!distance_sensor_.init()) {
-//     printf("Failed to init distance sensor, VL53L0X\n");
-//     for (;;) {
-//     }
-//   }
-
-  
-//   distance_sensor_.startContinuous();
-
-// }
-
-// void loop(){
-
-//   float distance_m = distance_sensor_.readRangeContinuousMillimeters() /
-//                              1000.f; // Convert mm to m
-
-//   printf("Distance: %f\n", distance_m);
-//   delay(100);
-
-// }

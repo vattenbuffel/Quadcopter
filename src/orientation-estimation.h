@@ -24,8 +24,8 @@ float get_ddx();
 float get_ddy();
 float get_ddz();
 
-void start_filter();
-bool update_filter();
+void start_orientation_estimation();
+bool update_orientation_estimation();
 
 
 #endif // COMPLEMENTARY_FILTER_H_

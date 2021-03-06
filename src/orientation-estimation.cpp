@@ -1,4 +1,4 @@
-#include "complementary-filter.h"
+#include "orientation-estimation.h"
 #include "FreeRTOS.h"
 #include "controller.h"
 #include <MPU9250_asukiaaa.h>
@@ -18,12 +18,12 @@ float Z = 0;
 void set_X(float);
 void set_Y(float);
 void set_Z(float);
-void filter_task(void *);
+void orientation_estimation_task(void *);
 
 // Function implementations
 
 
-void start_filter() {
+void start_orientation_estimation() {
   mySensor.setWire(&Wire);
   mySensor.beginAccel();
   mySensor.beginGyro();
@@ -32,12 +32,12 @@ void start_filter() {
 
   XYZ_lock = xSemaphoreCreateBinary();
   xSemaphoreGive(XYZ_lock);
-  xTaskCreatePinnedToCore(filter_task, "Filter-task",
+  xTaskCreatePinnedToCore(orientation_estimation_task, "Filter-task",
                           configMINIMAL_STACK_SIZE * 10, NULL, 5, NULL, 0);
   printf("Started complementary filter.\n");
 }
 
-bool update_filter() {
+bool update_orientation_estimation() {
   // check if there's new data
   if (mySensor.accelUpdate() != 0 || mySensor.gyroUpdate() != 0) {
     return false;
@@ -97,12 +97,12 @@ bool update_filter() {
 // This task continiously runs. It updates the orientation estimating whenever
 // there's new data available on the imu. It also notifies the controller update
 // task.
-void filter_task(void *) {
+void orientation_estimation_task(void *) {
   bool updated_orientation;
 
   for (;;) {
     // Update estimated orientation
-    updated_orientation = update_filter();
+    updated_orientation = update_orientation_estimation();
 
     // If the orientation was updated then update the controller
     if (updated_orientation) {
