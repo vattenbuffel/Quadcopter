@@ -86,8 +86,11 @@ void change_ref(PID_height_t *pid, float r) { pid->r = r; }
 
 void update_throttle(PID_height_t *pid, height_type height) {
   // printf("Updating height throttle from: %f", pid->base_throttle);
+  // float old_base = pid->base_throttle;
 
   float e = pid->r - height;
+  // printf("\nref: %f, height: %f\n", pid->r, height);
+  // printf("e: %f\n", e);
 
   float dt = (micros() - pid->t_prev) / (1000000.f);
   pid->t_prev = micros();
@@ -95,6 +98,7 @@ void update_throttle(PID_height_t *pid, height_type height) {
   pid->I += e * dt;
   pid->base_throttle = pid->Kp * e + pid->Ki * pid->I;
 
-  
+  // printf("Increased height pid throttle by: %f\n", pid->base_throttle-old_base); 
+  // vTaskDelay(1000/portTICK_RATE_MS);
   // printf(", to: %f\n", pid->base_throttle);
 }

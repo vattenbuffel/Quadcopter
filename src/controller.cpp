@@ -126,9 +126,11 @@ void controller_update_private() {
   controller_emergency_stop();
 
   height_type current_height;
-  if (height_pid_active &&
-      xQueueReceive(distance_queue_controller, &current_height, 0) == pdFALSE)
+  // if (height_pid_active && xQueueReceive(distance_queue_controller, &current_height, 0) == pdFALSE)
+  if (height_pid_active && xQueueReceive(distance_queue_controller, &current_height, 0) == pdTRUE){
+    // printf("Received height: %f\n", current_height);  
     update_throttle(&pid_height, current_height);
+  }
 
   controller_set_base_throtle_orientation(pid_height.base_throttle +
                                           bluetooth_base_throttle);
@@ -386,6 +388,8 @@ void controller_command_handler_task(void *pvParameter) {
       stop = true;
     } else if (command == command_start) {
       stop = false;
+      height_pid_active = true;
+      pid_height.t_prev = micros();
     } else if (command == command_square) {
       height_pid_active = true;
       pid_height.t_prev = micros();

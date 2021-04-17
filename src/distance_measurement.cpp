@@ -2,10 +2,10 @@
 #include "Arduino.h"
 #include "FreeRTOS.h"
 #include "VL53L0X.h"
+#include "controller.h"
 #include "orientation-estimation.h"
 #include <Wire.h>
 #include <math.h>
-#include "controller.h"
 
 QueueHandle_t distance_queue__;
 VL53L0X distance_sensor;
@@ -34,7 +34,7 @@ void distance_measurement_init(QueueHandle_t distance_queue_input) {
   }
   printf("Distance sensor initialized\n");
   distance_sensor.startContinuous();
-  
+
   distance_queue__ = distance_queue_input;
 
   latest_height_lock = xSemaphoreCreateBinary();
@@ -50,7 +50,7 @@ void distance_measurement_init(QueueHandle_t distance_queue_input) {
 float distance_measurement_get_height() {
   if (latest_height_lock == NULL)
     return latest_height;
-  
+
   float temp_height;
   xSemaphoreTake(latest_height_lock, portMAX_DELAY);
   temp_height = latest_height;
@@ -65,7 +65,7 @@ void distance_measurement_task(void *pvParameters) {
   for (;;) {
     height_type distance_m = distance_sensor.readRangeContinuousMillimeters() /
                              1000.f; // Convert mm to m
-    
+
     // If the read distance is too big, i.e. the quad is too high or the
     // measurement freaks out, set the read value to a safe value rather than
     // the max which it's output as.
