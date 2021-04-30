@@ -1,6 +1,6 @@
 Motors:
 	Cable color  : Motor : Pin
-	White        : NW    : 15
+	White/Orange : NW    : 15
 	Blue/Green   : NE    : 2
 	Orange/Blue  : SE    : 4
 	White/Yellow : SW    : 0
