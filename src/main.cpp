@@ -26,7 +26,7 @@ void setup() {
   // delay(1000);
   // Servo NE, SE, SW, NW;
   // bool pin_error = false;
-  // int speed = 1400;
+  // int speed = 1050;
   // pin_error = !NE.attach(
   //     NE_PIN, -1, 0, 180, 1000,
   //     2000); // (pin, min pulse width, max pulse width in microseconds)
