@@ -5,8 +5,8 @@
 
 #define NE_PIN 2
 #define SE_PIN 4
-#define SW_PIN 0
-#define NW_PIN 15
+#define SW_PIN 15
+#define NW_PIN 0
 
 #define CONTROLLER_PID_ORIENTATION_P 0
 #define CONTROLLER_PID_ORIENTATION_I 0

@@ -6,7 +6,7 @@
 
 
 // Macro to calculate the I value corresponding to throttle in a PID
-#define CONTROLLER_THROTTLE_TO_I(throttle, i) ((throttle)/min((double)i, 0.000000001))
+#define CONTROLLER_THROTTLE_TO_I(throttle, i) ((throttle)/max((double)i, 0.000000001))
 
 typedef enum {
   POS_NE,
