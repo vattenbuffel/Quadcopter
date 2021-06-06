@@ -25,7 +25,12 @@ void distance_measurement_task(void *pvParameters);
 // Inits the distance measurement
 void distance_measurement_init(QueueHandle_t distance_queue_input) {
   printf("Starting distance sensor\n");
-  Wire1.begin(WIRE1_SDA_PIN_NR, WIRE1_SCL_PIN_NR, 100000);
+  printf("Gonna init wire1 with SDA pin: %d, and SCL pin: %d\n", WIRE1_SDA_PIN_NR, WIRE1_SCL_PIN_NR);
+  if(!Wire1.begin(WIRE1_SDA_PIN_NR, WIRE1_SCL_PIN_NR, 100000)){
+    printf("Failed to init wire1\n");
+    for(;;){}
+  }
+  printf("Innited wire1\n");
   distance_sensor.setTimeout(DISTANCE_MEASUREMENT_TIME_OUT_MS);
   if (!distance_sensor.init()) {
     printf("Failed to init distance sensor, VL53L0X\n");

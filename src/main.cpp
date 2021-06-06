@@ -30,27 +30,34 @@ void setup() {
   // pin_error = !NE.attach(
   //     NE_PIN, -1, 0, 180, 1000,
   //     2000); // (pin, min pulse width, max pulse width in microseconds)
-  // NE.writeMicroseconds(speed);
+  // NE.writeMicroseconds(1000);
   // pin_error =
   //     pin_error ||
   //     !SE.attach(
   //         SE_PIN, -1, 0, 180, 1000,
   //         2000); // (pin, min pulse width, max pulse width in microseconds)
-  // SE.writeMicroseconds(speed);
+  // SE.writeMicroseconds(1000);
   // pin_error =
   //     pin_error ||
   //     !SW.attach(
   //         SW_PIN, -1, 0, 180, 1000,
   //         2000); // (pin, min pulse width, max pulse width in microseconds)
-  // SW.writeMicroseconds(speed);
+  // SW.writeMicroseconds(1000);
   // pin_error =
   //     pin_error ||
   //     !NW.attach(
   //         NW_PIN, -1, 0, 180, 1000,
   //         2000); // (pin, min pulse width, max pulse width in microseconds)
-  // NW.writeMicroseconds(speed);
+  // NW.writeMicroseconds(1000);
 
-  // vTaskDelay(5000/portTICK_RATE_MS);
+
+  // vTaskDelay(1000/portTICK_RATE_MS);
+  // NE.writeMicroseconds(speed);
+  // NW.writeMicroseconds(speed);
+  // SE.writeMicroseconds(speed);
+  // SW.writeMicroseconds(speed);
+
+  // vTaskDelay(50000/portTICK_RATE_MS);
   // NW.writeMicroseconds(1000);
   // SW.writeMicroseconds(1000);
   // SE.writeMicroseconds(1000);
@@ -87,7 +94,7 @@ void loop() {
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
 
-  // delay(100);
+  // delay(1000);
 }
 
 
