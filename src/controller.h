@@ -1,6 +1,8 @@
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 
+#include <Arduino.h>
+
 #define NE_PIN 2
 #define SE_PIN 4
 #define SW_PIN 0
@@ -20,10 +22,7 @@
 #define CONTROLLER_ORIENTATION_BASE_REF_Z 0
 
 #define CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL 200.f
-// #define CONTROLLER_HEIGHT_PID_START_I (CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL/CONTROLLER_PID_HEIGHT_I)
 
-// Macro to calculate the i value corresponding to throttle
-#define CONTROLLER_THROTTLE_TO_I(throttle, i) ((throttle)/i)
 
 #define CONTROLLER_MAX_X degToRad(40)
 #define CONTROLLER_MAX_Y degToRad(40)
