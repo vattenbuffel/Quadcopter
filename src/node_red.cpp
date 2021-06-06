@@ -27,7 +27,7 @@ bool connected = false;
 bool publish_task_publish = true;
 
 void callback(char *topic, byte *message, unsigned int length) {
-  // This function is so hard to read. It should be improved.
+  // TODO:This function is so hard to read. It should be improved.
 
   // This is needed to convert the byte message to a char message
   char messageTemp[length];
@@ -83,14 +83,26 @@ void callback(char *topic, byte *message, unsigned int length) {
   }
   else if(strcmp(topic, NODE_RED_GET_ORIENTATION_TOPIC_SEND) == 0) node_red_publish_orientation();
   else if(strcmp(topic, NODE_RED_GET_HEIGHT_TOPIC_SEND) == 0) node_red_publish_height();
+  else if(strcmp(topic, NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_SEND) == 0){
+    float throttle = atof(messageTemp);
+    controller_set_height_start_throttle(throttle);
+    node_red_publish_height_start_throttle();
+  }
 
+
+}
+
+void node_red_publish_height_start_throttle() {
+  char msg[1000]; // 1000 is probably big enough
+  sprintf(msg, "Height start throttle: %f", controller_get_height_start_throttle());
+  node_red_publish(NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_RECEIVE, msg);
 }
 
 void node_red_publish_pid_params() {
   char pid_msg[1000]; // 1000 is probably big enough
-  sprintf(pid_msg, "o_p:%f o_i:%f o_d:%f h_p:%f h_i:%f", controller_get_NW().Kp,
+  sprintf(pid_msg, "o_p:%f \no_i:%f \no_d:%f \nh_p:%f \nh_i:%f \nh_start:%f", controller_get_NW().Kp,
           controller_get_NW().Ki, controller_get_NW().Kd,
-          controller_get_height_pid().Kp, controller_get_height_pid().Ki);
+          controller_get_height_pid().Kp, controller_get_height_pid().Ki, controller_get_height_start_throttle());
   node_red_publish(NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE, pid_msg);
 }
 
@@ -266,6 +278,7 @@ bool node_red_sub_to_topics() {
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_TOPIC_SEND, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_HEIGHT_TOPIC_SEND, 1);
+  err &= mqtt_client.subscribe(NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_SEND, 1);
   return err;
 }
 

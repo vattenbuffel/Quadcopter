@@ -19,8 +19,11 @@
 #define CONTROLLER_ORIENTATION_BASE_REF_Y 0
 #define CONTROLLER_ORIENTATION_BASE_REF_Z 0
 
-#define CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL 200
-#define CONTROLLER_HEIGHT_PID_START_I (CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL/CONTROLLER_PID_HEIGHT_I)
+#define CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL 200.f
+// #define CONTROLLER_HEIGHT_PID_START_I (CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL/CONTROLLER_PID_HEIGHT_I)
+
+// Macro to calculate the i value corresponding to throttle
+#define CONTROLLER_THROTTLE_TO_I(throttle, i) ((throttle)/i)
 
 #define CONTROLLER_MAX_X degToRad(40)
 #define CONTROLLER_MAX_Y degToRad(40)
@@ -67,6 +70,8 @@ PID_orientation_t controller_get_SW();
 PID_orientation_t controller_get_SE();
 PID_height_t controller_get_height_pid();
 bool controller_stopped();
+float controller_get_height_start_throttle();
+void controller_set_height_start_throttle(float throttle);
 
 
 #endif // CONTROLLER_H_

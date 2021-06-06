@@ -12,7 +12,7 @@ PID_height_t pid_height;
 
 unsigned long heart_beat_time;
 bool stop, calibration_active, height_pid_active;
-float bluetooth_base_throttle;
+float bluetooth_base_throttle, height_start_throttle;
 
 static TaskHandle_t motor_calibration_handle = NULL;
 static TaskHandle_t controller_task_handle = NULL;
@@ -40,8 +40,9 @@ void controller_start(QueueHandle_t distance_queue,
   heart_beat_time = millis();
   bluetooth_base_throttle = 0;
   distance_queue_controller = distance_queue;
+  height_start_throttle = CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL;
 
-  pid_height.I = CONTROLLER_HEIGHT_PID_START_I;// If it starts at zero then it hasn't got enough lift to actually change it's orientation
+  pid_height.I = CONTROLLER_THROTTLE_TO_I(height_start_throttle, CONTROLLER_PID_HEIGHT_I);// If it starts at zero then it hasn't got enough lift to actually change it's orientation
   pid_height.Kp = CONTROLLER_PID_HEIGHT_P;
   pid_height.Ki = CONTROLLER_PID_HEIGHT_I;
   pid_height.r = CONTROLLER_HEIGHT_BASE_REF;
@@ -93,15 +94,15 @@ void controller_start(QueueHandle_t distance_queue,
   }
   printf("Attached servos\n");
 
-  memcpy(&pid_SE, &pid_NE, sizeof(pid_NE)); // not sure if this works
+  memcpy(&pid_SE, &pid_NE, sizeof(pid_NE)); 
   pid_SE.pos = POS_SE;
   pid_SE.pin = SE_PIN;
 
-  memcpy(&pid_SW, &pid_NE, sizeof(pid_NE)); // not sure if this works
+  memcpy(&pid_SW, &pid_NE, sizeof(pid_NE)); 
   pid_SW.pos = POS_SW;
   pid_SW.pin = SW_PIN;
 
-  memcpy(&pid_NW, &pid_NE, sizeof(pid_NE)); // not sure if this works
+  memcpy(&pid_NW, &pid_NE, sizeof(pid_NE)); 
   pid_NW.pos = POS_NW;
   pid_NW.pin = NW_PIN;
 
@@ -218,7 +219,7 @@ void controller_set_ref_orientation(float rX, float rY, float rZ) {
 // Resets the pids to their start state
 void controller_reset_controllers() {
   height_pid_active = false;
-  pid_height.I = CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL / pid_height.Ki; // If it starts at zero then it hasn't got enough lift to actually change it's orientation
+  pid_height.I = CONTROLLER_THROTTLE_TO_I(height_start_throttle, pid_height.Ki); // If it starts at zero then it hasn't got enough lift to actually change it's orientation
   pid_height.base_throttle = 0;
   change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
   update_throttle(&pid_height, pid_height.r);
@@ -313,6 +314,17 @@ void controller_update_task(void *) {
     // printf("controller-task\n");
     controller_update_private();
   }
+}
+
+float controller_get_height_start_throttle(){
+  return height_start_throttle;
+}
+
+
+void controller_set_height_start_throttle(float throttle){
+  pid_height.I -= CONTROLLER_THROTTLE_TO_I(height_start_throttle, pid_height.Ki);
+  height_start_throttle = throttle;
+  pid_height.I += CONTROLLER_THROTTLE_TO_I(height_start_throttle, pid_height.Ki);
 }
 
 // Calibrates the ESC/motors
