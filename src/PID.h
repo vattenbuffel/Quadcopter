@@ -5,8 +5,8 @@
 #include "distance_measurement.h"
 
 
-// Macro to calculate the I value corresponding to throttle in a PID
-#define CONTROLLER_THROTTLE_TO_I(throttle, i) ((throttle)/max((double)i, 0.000000001))
+// Macro to calculate the I value corresponding to throttle in a PID. Returns 0 if i is 0
+#define CONTROLLER_THROTTLE_TO_I(throttle, i) (!i ? (double) 0 : (throttle)/(i))
 
 typedef enum {
   POS_NE,

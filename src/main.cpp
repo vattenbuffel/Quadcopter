@@ -94,7 +94,7 @@ void loop() {
   // Serial.print("  Z :");
   // Serial.println(radToDeg(get_Z()));
 
-  // delay(1000);
+  // delay(100);
 }
 
 
