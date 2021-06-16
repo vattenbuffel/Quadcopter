@@ -15,10 +15,12 @@
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
 
+long last_print;
 
 void setup() {
   Serial.begin(115200);
   Wire.begin();
+  last_print = millis();
 
   printf("\nStarted!\n");
   // delay(1000);
@@ -83,16 +85,19 @@ void loop() {
   // if(xQueueReceive(command_queue,  &data, 0) == pdTRUE) printf("command:
   // %d\n", data);
 
-  // printf("Cur height: %f\n", distance_measurement_get_height());
+  // if (millis() > last_print + 250){
+  //   last_print = millis();
+  //   printf("Cur height: %f\n", distance_measurement_get_height());
 
-  // Serial.print("X :");
-  // Serial.print(radToDeg(get_X()));
-  // Serial.print("  Y :");
-  // Serial.print(radToDeg(get_Y()));
-  // Serial.print("  Z :");
-  // Serial.println(radToDeg(get_Z()));
+  //   Serial.print("X :");
+  //   Serial.print(radToDeg(get_X()));
+  //   Serial.print("  Y :");
+  //   Serial.print(radToDeg(get_Y()));
+  //   Serial.print("  Z :");
+  //   Serial.println(radToDeg(get_Z()));
 
-  // delay(100);
+  //   printf("NW throttle: %f\n", controller_get_NW().output_throttle);
+  // }
 }
 
 
