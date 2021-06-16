@@ -1,28 +1,27 @@
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 
+#include <Arduino.h>
+#include "min_max.h"
+
 #define NE_PIN 2
 #define SE_PIN 4
-#define SW_PIN 0
-#define NW_PIN 15
+#define SW_PIN 15
+#define NW_PIN 0
 
 #define CONTROLLER_PID_ORIENTATION_P 100
-#define CONTROLLER_PID_ORIENTATION_I 0
+#define CONTROLLER_PID_ORIENTATION_I 10
 #define CONTROLLER_PID_ORIENTATION_D 20
 
-#define CONTROLLER_PID_HEIGHT_P 0
-#define CONTROLLER_PID_HEIGHT_I 100
+#define CONTROLLER_PID_HEIGHT_P 100
+#define CONTROLLER_PID_HEIGHT_I 0
 
 #define CONTROLLER_HEIGHT_BASE_REF 1.f
 #define CONTROLLER_ORIENTATION_BASE_REF_X 0
 #define CONTROLLER_ORIENTATION_BASE_REF_Y 0
 #define CONTROLLER_ORIENTATION_BASE_REF_Z 0
 
-#define CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL 500.f
-// #define CONTROLLER_HEIGHT_PID_START_I (CONTROLLER_HEIGHT_PID_START_THROTTLE_VAL/CONTROLLER_PID_HEIGHT_I)
-
-// Macro to calculate the i value corresponding to throttle
-#define CONTROLLER_THROTTLE_TO_I(throttle, i) ((throttle)/i)
+#define CONTROLLER_HEIGHT_BASE_THROTTLE_VAL 525.f
 
 #define CONTROLLER_MAX_X degToRad(40)
 #define CONTROLLER_MAX_Y degToRad(40)
@@ -36,7 +35,10 @@
 #define CONTROLLER_HEARTBEAT_HZ 0.05
 
 #define CONTROLLER_MIN_THROTTLE 0
-#define CONTROLLER_MAX_THROTTLE 1000
+#define CONTROLLER_MAX_THROTTLE 1000.f
+
+// Macro to limit throttle to between min and max value
+#define CONTROLLER_LIMIT_THROTTLE(throttle) (max(CONTROLLER_MIN_THROTTLE, min(CONTROLLER_MAX_THROTTLE, (throttle))))
 
 #include "PID.h"
 
@@ -69,8 +71,8 @@ PID_orientation_t controller_get_SW();
 PID_orientation_t controller_get_SE();
 PID_height_t controller_get_height_pid();
 bool controller_stopped();
-float controller_get_height_start_throttle();
-void controller_set_height_start_throttle(float throttle);
+float controller_get_base_throttle();
+void controller_set_base_throttle(float throttle);
 
 
 #endif // CONTROLLER_H_

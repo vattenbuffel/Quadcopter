@@ -95,6 +95,11 @@ void distance_measurement_task(void *pvParameters) {
       }
     }*/
 
+    // if it timed out
+    if (distance_sensor.timeoutOccurred()) {
+      printf("Timeout on distance measurement\n");
+    }
+
     // Calculate how high above ground the quadcopter is
     height_type height_m = distance_m * cos(get_X()) * cos(get_Y());
     // TEMP

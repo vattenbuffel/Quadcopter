@@ -15,8 +15,8 @@
 #define NODE_RED_GET_ORIENTATION_TOPIC_RECEIVE "get-orientation-receive"
 #define NODE_RED_GET_HEIGHT_TOPIC_SEND "get-height-send"
 #define NODE_RED_GET_HEIGHT_TOPIC_RECEIVE "get-height-receive"
-#define NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_SEND "set-start-height-throttle-send"
-#define NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_RECEIVE "set-start-height-throttle-receive"
+#define NODE_RED_SET_BASE_THROTTLE_TOPIC_SEND "set-base-throttle-send"
+#define NODE_RED_SET_BASE_THROTTLE_TOPIC_RECEIVE "set-base-throttle-receive"
 
 
 void node_red_start();
@@ -24,6 +24,5 @@ void node_red_publish(const char *topic, const char *data);
 void node_red_publish_controller_info();
 void node_red_stop_publishing_controller_info();
 void node_red_start_publishing_controller_info();
-void node_red_publish_height_start_throttle();
 
 #endif /*NODE_RED_H_*/
