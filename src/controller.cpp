@@ -131,7 +131,7 @@ void controller_update_private() {
   height_type current_height;
   if (height_pid_active && xQueueReceive(distance_queue_controller, &current_height, 0) == pdTRUE){
     // printf("Received height: %f\n", current_height);  
-    // update_throttle(&pid_height, current_height);
+    update_throttle(&pid_height, current_height);
   }
 
   // controller_set_base_throtle_orientation(pid_height.base_throttle +
@@ -165,7 +165,7 @@ void controller_emergency_stop() {
 void controller_publish_information(void*){
   for(;;){
     printf("Emergency stop\n");
-    
+
     #ifdef NODE_RED
       node_red_publish_controller_info();
     #endif // NODE_RED
@@ -193,9 +193,10 @@ void controller_actuate_motors() {
   }
 
   controller_output_throttle();
-  printf("Output throttle NE: %f\n", pid_NE.output_throttle);
-  printf("height throttle NE: %f\n", pid_height.throttle);
-  printf("\n");
+  // printf("Output throttle NE: %f\n", pid_NE.output_throttle);
+  // printf("height throttle: %f\n", pid_height.throttle);
+  // printf("height: %f\n", distance_measurement_get_height());
+  // printf("\n");
   ESC_NE.writeMicroseconds(pid_NE.output_throttle);
   ESC_SE.writeMicroseconds(pid_SE.output_throttle);
   ESC_SW.writeMicroseconds(pid_SW.output_throttle);
