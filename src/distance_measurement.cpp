@@ -102,8 +102,12 @@ void distance_measurement_task(void *pvParameters) {
       char* error_msg = "Timeout on distance measurement";
       printf("%s\n", error_msg);
       #ifdef CONFIG_NODE_RED_ENABLE
-        node_red_publish_error("Timeout on distance measurement");
+        node_red_publish_error(error_msg);
+        node_red_publish_error("Stopping controller");
       #endif //CONFIG_NODE_RED_ENABLE
+      controller_stop();
+
+
     }
 
     // Calculate how high above ground the quadcopter is

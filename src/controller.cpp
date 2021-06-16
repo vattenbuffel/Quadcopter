@@ -29,7 +29,6 @@ void controller_command_handler_task(void *pvParameter);
 void controller_motor_calibration_handler();
 void controller_motor_calibration_task(void *pvParameter);
 void controller_update_task(void *);
-void controller_stop();
 void controller_emergency_stop();
 void controller_publish_information(void*);
 void controller_output_throttle();

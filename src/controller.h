@@ -73,6 +73,8 @@ PID_height_t controller_get_height_pid();
 bool controller_stopped();
 float controller_get_base_throttle();
 void controller_set_base_throttle(float throttle);
+void controller_stop();
+
 
 
 #endif // CONTROLLER_H_
