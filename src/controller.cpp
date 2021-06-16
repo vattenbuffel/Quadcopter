@@ -22,7 +22,6 @@ QueueHandle_t distance_queue_controller;
 // Private functions
 void controller_update_orientation();
 void controller_actuate_motors();
-// void controller_set_base_throtle_orientation(float base_throttle);
 void controller_set_ref_orientation(float rX, float rY, float rZ);
 void controller_reset_controllers();
 void controller_command_handler_task(void *pvParameter);
@@ -44,7 +43,7 @@ void controller_start(QueueHandle_t distance_queue,
   distance_queue_controller = distance_queue;
   base_throttle = CONTROLLER_HEIGHT_BASE_THROTTLE_VAL;
 
-  pid_height.I = 0;//CONTROLLER_THROTTLE_TO_I(base_throttle, CONTROLLER_PID_HEIGHT_I);// If it starts at zero then it hasn't got enough lift to actually change it's orientation
+  pid_height.I = 0;
   pid_height.Kp = CONTROLLER_PID_HEIGHT_P;
   pid_height.Ki = CONTROLLER_PID_HEIGHT_I;
   pid_height.r = CONTROLLER_HEIGHT_BASE_REF;
@@ -59,9 +58,6 @@ void controller_start(QueueHandle_t distance_queue,
   pid_NE.Kp = CONTROLLER_PID_ORIENTATION_P;
   pid_NE.Kd = CONTROLLER_PID_ORIENTATION_D;
   pid_NE.IX = pid_NE.IY = pid_NE.IZ = 0;
-  // pid_NE.base_throttle = pid_height.base_throttle;
-  pid_NE.max_throttle = CONTROLLER_MAX_THROTTLE;
-  pid_NE.min_throttle = CONTROLLER_MIN_THROTTLE;
 
   // Attach the motors, and set them to stationary. If a motor is connected to a
   // pin which doesn't support PWM, stop the code from running.
@@ -134,8 +130,6 @@ void controller_update_private() {
     update_throttle(&pid_height, current_height);
   }
 
-  // controller_set_base_throtle_orientation(pid_height.base_throttle +
-  //                                         bluetooth_base_throttle);
   controller_update_orientation();
   controller_actuate_motors();
 }
@@ -193,26 +187,21 @@ void controller_actuate_motors() {
   }
 
   controller_output_throttle();
-  // printf("Output throttle NE: %f\n", pid_NE.output_throttle);
-  // printf("height throttle: %f\n", pid_height.throttle);
-  // printf("height: %f\n", distance_measurement_get_height());
-  // printf("\n");
   ESC_NE.writeMicroseconds(pid_NE.output_throttle);
   ESC_SE.writeMicroseconds(pid_SE.output_throttle);
   ESC_SW.writeMicroseconds(pid_SW.output_throttle);
   ESC_NW.writeMicroseconds(pid_NW.output_throttle);
-  // printf("NW.base: %f\n", pid_NW.base_throttle);
-}
+  }
 
 /**
  * @brief Takes the throttles of the pids, adds on base_throttle and limits them
  * 
  */
 void controller_output_throttle(){
-  pid_NE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NE.throttle + base_throttle + pid_height.throttle) + 1000.f;
-  pid_SE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SE.throttle + base_throttle + pid_height.throttle) + 1000.f;
-  pid_SW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SW.throttle + base_throttle + pid_height.throttle) + 1000.f;
-  pid_NW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NW.throttle + base_throttle + pid_height.throttle) + 1000.f;
+  pid_NE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NE.throttle + pid_height.throttle + base_throttle + bluetooth_base_throttle) + 1000.f;
+  pid_SE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SE.throttle + pid_height.throttle + base_throttle + bluetooth_base_throttle) + 1000.f;
+  pid_SW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SW.throttle + pid_height.throttle + base_throttle + bluetooth_base_throttle) + 1000.f;
+  pid_NW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NW.throttle + pid_height.throttle + base_throttle + bluetooth_base_throttle) + 1000.f;
 }
 
 void controller_update_orientation() {
@@ -221,13 +210,6 @@ void controller_update_orientation() {
   update_throttle(&pid_SW);
   update_throttle(&pid_NW);
 }
-
-// void controller_set_base_throtle_orientation(float base_throttle) {
-//   change_base_throttle(&pid_NE, pid_height.base_throttle);
-//   change_base_throttle(&pid_SE, pid_height.base_throttle);
-//   change_base_throttle(&pid_SW, pid_height.base_throttle);
-//   change_base_throttle(&pid_NW, pid_height.base_throttle);
-// }
 
 void controller_set_ref_orientation(float rX, float rY, float rZ) {
   change_ref(&pid_NE, rX, rY, rZ);
@@ -239,30 +221,25 @@ void controller_set_ref_orientation(float rX, float rY, float rZ) {
 // Resets the pids to their start state
 void controller_reset_controllers() {
   height_pid_active = false;
-  pid_height.I = 0;//CONTROLLER_THROTTLE_TO_I(base_throttle, pid_height.Ki); // If it starts at zero then it hasn't got enough lift to actually change it's orientation
-  // pid_height.base_throttle = 0;
+  pid_height.I = 0;
   change_ref(&pid_height, CONTROLLER_HEIGHT_BASE_REF);
   update_throttle(&pid_height, pid_height.r);
 
   pid_NE.IX = 0;
   pid_NE.IY = 0;
   pid_NE.IZ = 0;
-  // pid_NE.base_throttle = pid_height.base_throttle;
 
   pid_SE.IX = 0;
   pid_SE.IY = 0;
   pid_SE.IZ = 0;
-  // // pid_SE.base_throttle = pid_height.base_throttle;
 
   pid_SW.IX = 0;
   pid_SW.IY = 0;
   pid_SW.IZ = 0;
-  // // pid_SW.base_throttle = pid_height.base_throttle;
 
   pid_NW.IX = 0;
   pid_NW.IY = 0;
   pid_NW.IZ = 0;
-  // // pid_NW.base_throttle = pid_height.base_throttle;
 
   controller_set_ref_orientation(CONTROLLER_ORIENTATION_BASE_REF_X,
                                  CONTROLLER_ORIENTATION_BASE_REF_Y,

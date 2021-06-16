@@ -1,7 +1,7 @@
 #include "PID.h"
 #include "FreeRTOS.h"
-#include "orientation-estimation.h"
 #include "distance_measurement.h"
+#include "orientation-estimation.h"
 
 void update_throttle(PID_orientation_t *pid) {
   // Ignore Z for now
@@ -26,12 +26,11 @@ void update_throttle(PID_orientation_t *pid) {
 
   // Calc throttle with controller placement in mind
   float p_effect, i_effect, d_effect;
-  // float throttle = pid->base_throttle;
   if (pid->pos == POS_NE) {
     p_effect = -pid->Kp * eX - pid->Kp * eY;
     i_effect = -pid->Ki * pid->IX - pid->Ki * pid->IY;
     d_effect = -pid->Kd * DX - pid->Kd * DY;
-    
+
   } else if (pid->pos == POS_SE) {
     p_effect = -pid->Kp * eX + pid->Kp * eY;
     i_effect = -pid->Ki * pid->IX + pid->Ki * pid->IY;
@@ -41,33 +40,22 @@ void update_throttle(PID_orientation_t *pid) {
     p_effect = pid->Kp * eX + pid->Kp * eY;
     i_effect = pid->Ki * pid->IX + pid->Ki * pid->IY;
     d_effect = pid->Kd * DX + pid->Kd * DY;
-    
+
   } else if (pid->pos == POS_NW) {
     p_effect = pid->Kp * eX - pid->Kp * eY;
     i_effect = pid->Ki * pid->IX - pid->Ki * pid->IY;
     d_effect = pid->Kd * DX - pid->Kd * DY;
-  }
-  else{
+  } else {
     printf("ERROR: Incorrect motor position\n");
-    for(;;){}
+    for (;;) {
+    }
   }
   pid->throttle = p_effect + i_effect + d_effect;
 
   pid->prev_p_effect = p_effect;
   pid->prev_i_effect = i_effect;
   pid->prev_d_effect = d_effect;
-
-  // pid->throttle = throttle;
-
-  // limit_throttle(pid);
 }
-
-// void limit_throttle(PID_orientation_t *pid) {
-//   if (pid->throttle > pid->max_throttle)
-//     pid->throttle = pid->max_throttle;
-//   else if (pid->throttle < pid->min_throttle)
-//     pid->throttle = pid->min_throttle;
-// }
 
 /**
  * Changes the reference values of the orientation pids
@@ -78,28 +66,14 @@ void change_ref(PID_orientation_t *pid, float rX, float rY, float rZ) {
   pid->rZ = rZ;
 }
 
-// void change_base_throttle(PID_orientation_t *pid, float base_throttle) {
-//   pid->base_throttle = base_throttle;
-// }
-
 void change_ref(PID_height_t *pid, float r) { pid->r = r; }
 
 void update_throttle(PID_height_t *pid, height_type height) {
-  // printf("Updating height throttle from: %f", pid->base_throttle);
-  // float old_base = pid->base_throttle;
-
   float e = pid->r - height;
-  // printf("\nref: %f, height: %f\n", pid->r, height);
-  // printf("e: %f\n", e);
 
   float dt = (micros() - pid->t_prev) / (1000000.f);
   pid->t_prev = micros();
 
   pid->I += e * dt;
-  // pid->base_throttle = pid->Kp * e + pid->Ki * pid->I;
   pid->throttle = pid->Kp * e + pid->Ki * pid->I;
-
-  // printf("Increased height pid throttle by: %f\n", pid->base_throttle-old_base); 
-  // vTaskDelay(1000/portTICK_RATE_MS);
-  // printf(", to: %f\n", pid->base_throttle);
 }

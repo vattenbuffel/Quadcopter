@@ -12,7 +12,7 @@
 #include <Wire.h>
 
 // This dictates if data should be published on node-red
-// #define NODE_RED
+#define NODE_RED
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
