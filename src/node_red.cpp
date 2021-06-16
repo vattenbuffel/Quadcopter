@@ -83,26 +83,20 @@ void callback(char *topic, byte *message, unsigned int length) {
   }
   else if(strcmp(topic, NODE_RED_GET_ORIENTATION_TOPIC_SEND) == 0) node_red_publish_orientation();
   else if(strcmp(topic, NODE_RED_GET_HEIGHT_TOPIC_SEND) == 0) node_red_publish_height();
-  else if(strcmp(topic, NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_SEND) == 0){
+  else if(strcmp(topic, NODE_RED_SET_BASE_THROTTLE_TOPIC_SEND) == 0){
     float throttle = atof(messageTemp);
-    controller_set_height_start_throttle(throttle);
-    node_red_publish_height_start_throttle();
+    controller_set_base_throttle(throttle);
+    node_red_publish_pid_params();
   }
 
 
 }
 
-void node_red_publish_height_start_throttle() {
-  char msg[1000]; // 1000 is probably big enough
-  sprintf(msg, "Height start throttle: %f", controller_get_height_start_throttle());
-  node_red_publish(NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_RECEIVE, msg);
-}
-
 void node_red_publish_pid_params() {
   char pid_msg[1000]; // 1000 is probably big enough
-  sprintf(pid_msg, "o_p:%f \no_i:%f \no_d:%f \nh_p:%f \nh_i:%f \nh_start:%f", controller_get_NW().Kp,
+  sprintf(pid_msg, "o_p:%f \no_i:%f \no_d:%f \nh_p:%f \nh_i:%f \nbase_throttle:%f", controller_get_NW().Kp,
           controller_get_NW().Ki, controller_get_NW().Kd,
-          controller_get_height_pid().Kp, controller_get_height_pid().Ki, controller_get_height_start_throttle());
+          controller_get_height_pid().Kp, controller_get_height_pid().Ki, controller_get_base_throttle());
   node_red_publish(NODE_RED_GET_ORIENTATION_PID_TOPIC_RECEIVE, pid_msg);
 }
 
@@ -142,35 +136,35 @@ void node_red_publish_controller_info() {
   
   // Publish information about NE
   PID_orientation_t pid_orientation = controller_get_NE(); 
-  sprintf(number_c, "%f", pid_orientation.throttle);
+  sprintf(number_c, "%f", pid_orientation.output_throttle);
   node_red_publish("NE", number_c);  
   sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
   node_red_publish("NE-PID", number_c);
 
 
-// Publish information about SE  
+  // Publish information about SE  
   pid_orientation = controller_get_SE(); 
-  sprintf(number_c, "%f", pid_orientation.throttle);
+  sprintf(number_c, "%f", pid_orientation.output_throttle);
   node_red_publish("SE", number_c);  
   sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
   node_red_publish("SE-PID", number_c);
 
-// Publish information about NW
+  // Publish information about NW
   pid_orientation = controller_get_NW(); 
-  sprintf(number_c, "%f", pid_orientation.throttle);
+  sprintf(number_c, "%f", pid_orientation.output_throttle);
   node_red_publish("NW", number_c);  
   sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
   node_red_publish("NW-PID", number_c);
 
-// Publish information about NW
+  // Publish information about NW
   pid_orientation = controller_get_SW(); 
-  sprintf(number_c, "%f", pid_orientation.throttle);
+  sprintf(number_c, "%f", pid_orientation.output_throttle);
   node_red_publish("SW", number_c);  
   sprintf(number_c, "%f,%f,%f", pid_orientation.prev_p_effect, pid_orientation.prev_i_effect, pid_orientation.prev_d_effect);
   node_red_publish("SW-PID", number_c);
 
 
-  sprintf(number_c, "%f", controller_get_height_pid().base_throttle);
+  sprintf(number_c, "%f", controller_get_height_pid().output_throttle);
   node_red_publish("HPID", number_c);
   sprintf(number_c, "%f", distance_measurement_get_height());
   node_red_publish("H", number_c);
@@ -278,7 +272,7 @@ bool node_red_sub_to_topics() {
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_PID_TOPIC_SEND, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_TOPIC_SEND, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_HEIGHT_TOPIC_SEND, 1);
-  err &= mqtt_client.subscribe(NODE_RED_SET_START_HEIGHT_THROTTLE_TOPIC_SEND, 1);
+  err &= mqtt_client.subscribe(NODE_RED_SET_BASE_THROTTLE_TOPIC_SEND, 1);
   return err;
 }
 

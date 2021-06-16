@@ -17,7 +17,7 @@ typedef enum {
 
 typedef struct PID_orientation_t {
   uint8_t pin;
-  float throttle, base_throttle, min_throttle, max_throttle;
+  float throttle, output_throttle, min_throttle, max_throttle;//, base_throttle;
   float Kp, Ki, Kd, IX, IY, IZ, e_prev_X, e_prev_Y, e_prev_Z;
   float rX, rY, rZ; // in rad
   float prev_p_effect, prev_i_effect, prev_d_effect;
@@ -26,16 +26,17 @@ typedef struct PID_orientation_t {
 };
 
 typedef struct PID_height_t {
-  float base_throttle; 
+  // float base_throttle; 
+  float throttle, output_throttle; 
   float Kp, Ki, I;
   float r; // in m
   long t_prev;
 };
 
 void update_throttle(PID_orientation_t *pid);
-void limit_throttle(PID_orientation_t *pid);
+// void limit_throttle(PID_orientation_t *pid);
 void change_ref(PID_orientation_t *pid, float rX, float rY, float rZ);
-void change_base_throttle(PID_orientation_t *pid, float base_throttle);
+// void change_base_throttle(PID_orientation_t *pid, float base_throttle);
 
 void update_throttle(PID_height_t *pid, height_type height);
 void change_ref(PID_height_t *pid, float r);
