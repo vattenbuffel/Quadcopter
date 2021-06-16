@@ -26,7 +26,7 @@ typedef struct PID_orientation_t {
 };
 
 typedef struct PID_height_t {
-  float throttle, output_throttle; 
+  float throttle;
   float Kp, Ki, I;
   float r; // in m
   long t_prev;

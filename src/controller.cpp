@@ -5,6 +5,7 @@
 #include "node_red.h"
 #include <Servo.h>
 #include "min_max.h"
+#include "config.h"
 
 PID_orientation_t pid_NE, pid_SE, pid_SW, pid_NW;
 Servo ESC_NE, ESC_SE, ESC_SW, ESC_NW;
@@ -160,9 +161,9 @@ void controller_publish_information(void*){
   for(;;){
     printf("Emergency stop\n");
 
-    #ifdef NODE_RED
+    #ifdef CONFIG_NODE_RED_ENABLE
       node_red_publish_controller_info();
-    #endif // NODE_RED
+    #endif // CONFIG_NODE_RED_ENABLE
     vTaskDelete(NULL);
   }
 }
@@ -381,31 +382,36 @@ void controller_command_handler_task(void *pvParameter) {
 
     // This should be changed to a switch statement
     if (command == command_left) {
-      controller_set_ref_orientation(pid_NE.rX - CONTROLLER_ORIENTATION_CHANGE,
-                                     pid_NE.rY, 0);
-    } else if (command == command_up) {
-      controller_set_ref_orientation(
-          pid_NE.rX, pid_NE.rY + CONTROLLER_ORIENTATION_CHANGE, 0);
-    } else if (command == command_right) {
-      controller_set_ref_orientation(pid_NE.rX + CONTROLLER_ORIENTATION_CHANGE,
-                                     pid_NE.rY, 0);
-    } else if (command == command_down) {
-      controller_set_ref_orientation(
-          pid_NE.rX, pid_NE.rY - CONTROLLER_ORIENTATION_CHANGE, 0);
-    } else if (command == command_select) {
+      controller_set_ref_orientation(pid_NE.rX - CONTROLLER_ORIENTATION_CHANGE, pid_NE.rY, 0);
+    } 
+    else if (command == command_up) {
+      controller_set_ref_orientation(pid_NE.rX, pid_NE.rY + CONTROLLER_ORIENTATION_CHANGE, 0);
+    } 
+    else if (command == command_right) {
+      controller_set_ref_orientation(pid_NE.rX + CONTROLLER_ORIENTATION_CHANGE, pid_NE.rY, 0);
+    } 
+    else if (command == command_down) {
+      controller_set_ref_orientation(pid_NE.rX, pid_NE.rY - CONTROLLER_ORIENTATION_CHANGE, 0);
+    } 
+    else if (command == command_select) {
       stop = true;
-    } else if (command == command_start) {
+    } 
+    else if (command == command_start) {
       stop = false;
       height_pid_active = true;
       pid_height.t_prev = micros();
-    } else if (command == command_square) {
+    } 
+    else if (command == command_square) {
       height_pid_active = true;
       pid_height.t_prev = micros();
-    } else if (command == command_triangle) {
+    } 
+    else if (command == command_triangle) {
       bluetooth_base_throttle += CONTROLLER_BASE_THROTTLE_CHANGE;
-    } else if (command == command_cross) {
+    } 
+    else if (command == command_cross) {
       controller_motor_calibration_handler();
-    } else if (command == command_circle) {
+    } 
+    else if (command == command_circle) {
       bluetooth_base_throttle -= CONTROLLER_BASE_THROTTLE_CHANGE;
     }
   }

@@ -10,9 +10,7 @@
 #include <MPU9250_asukiaaa.h>
 #include <Servo.h>
 #include <Wire.h>
-
-// This dictates if data should be published on node-red
-#define NODE_RED
+#include "config.h"
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
@@ -75,9 +73,9 @@ void setup() {
 
   controller_start(distance_queue, command_queue);
 
-#ifdef NODE_RED
+#ifdef CONFIG_NODE_RED_ENABLE
   node_red_start();
-#endif // NODE_RED
+#endif // CONFIG_NODE_RED_ENABLE
 }
 
 void loop() {

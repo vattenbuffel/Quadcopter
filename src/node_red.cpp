@@ -164,7 +164,7 @@ void node_red_publish_controller_info() {
   node_red_publish("SW-PID", number_c);
 
 
-  sprintf(number_c, "%f", controller_get_height_pid().output_throttle);
+  sprintf(number_c, "%f", controller_get_height_pid().throttle);
   node_red_publish("HPID", number_c);
   sprintf(number_c, "%f", distance_measurement_get_height());
   node_red_publish("H", number_c);
@@ -173,6 +173,10 @@ void node_red_publish_controller_info() {
   node_red_publish("X", number_c);
   sprintf(number_c, "%f", get_Y());
   node_red_publish("Y", number_c);
+}
+
+void node_red_publish_error(char* message){
+  node_red_publish(NODE_RED_ERROR_TOPIC_RECEIVE, message);
 }
 
 void node_red_start() {
@@ -273,6 +277,7 @@ bool node_red_sub_to_topics() {
   err &= mqtt_client.subscribe(NODE_RED_GET_ORIENTATION_TOPIC_SEND, 1);
   err &= mqtt_client.subscribe(NODE_RED_GET_HEIGHT_TOPIC_SEND, 1);
   err &= mqtt_client.subscribe(NODE_RED_SET_BASE_THROTTLE_TOPIC_SEND, 1);
+  err &= mqtt_client.subscribe(NODE_RED_ERROR_TOPIC_RECEIVE, 1);
   return err;
 }
 

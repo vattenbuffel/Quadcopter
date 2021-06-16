@@ -17,6 +17,7 @@
 #define NODE_RED_GET_HEIGHT_TOPIC_RECEIVE "get-height-receive"
 #define NODE_RED_SET_BASE_THROTTLE_TOPIC_SEND "set-base-throttle-send"
 #define NODE_RED_SET_BASE_THROTTLE_TOPIC_RECEIVE "set-base-throttle-receive"
+#define NODE_RED_ERROR_TOPIC_RECEIVE "error-receive"
 
 
 void node_red_start();
@@ -24,5 +25,6 @@ void node_red_publish(const char *topic, const char *data);
 void node_red_publish_controller_info();
 void node_red_stop_publishing_controller_info();
 void node_red_start_publishing_controller_info();
+void node_red_publish_error(char* message);
 
 #endif /*NODE_RED_H_*/

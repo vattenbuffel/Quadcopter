@@ -6,6 +6,8 @@
 #include "orientation-estimation.h"
 #include <Wire.h>
 #include <math.h>
+#include "node_red.h"
+#include "config.h"
 
 QueueHandle_t distance_queue__;
 VL53L0X distance_sensor;
@@ -97,7 +99,11 @@ void distance_measurement_task(void *pvParameters) {
 
     // if it timed out
     if (distance_sensor.timeoutOccurred()) {
-      printf("Timeout on distance measurement\n");
+      char* error_msg = "Timeout on distance measurement";
+      printf("%s\n", error_msg);
+      #ifdef CONFIG_NODE_RED_ENABLE
+        node_red_publish_error("Timeout on distance measurement");
+      #endif //CONFIG_NODE_RED_ENABLE
     }
 
     // Calculate how high above ground the quadcopter is
