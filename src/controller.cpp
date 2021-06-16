@@ -165,7 +165,10 @@ void controller_emergency_stop() {
 void controller_publish_information(void*){
   for(;;){
     printf("Emergency stop\n");
-    node_red_publish_controller_info();
+    
+    #ifdef NODE_RED
+      node_red_publish_controller_info();
+    #endif // NODE_RED
     vTaskDelete(NULL);
   }
 }
@@ -190,7 +193,9 @@ void controller_actuate_motors() {
   }
 
   controller_output_throttle();
-
+  printf("Output throttle NE: %f\n", pid_NE.output_throttle);
+  printf("height throttle NE: %f\n", pid_height.throttle);
+  printf("\n");
   ESC_NE.writeMicroseconds(pid_NE.output_throttle);
   ESC_SE.writeMicroseconds(pid_SE.output_throttle);
   ESC_SW.writeMicroseconds(pid_SW.output_throttle);
@@ -203,10 +208,10 @@ void controller_actuate_motors() {
  * 
  */
 void controller_output_throttle(){
-  pid_NE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NE.throttle + base_throttle) + 1000.f;
-  pid_SE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SE.throttle + base_throttle) + 1000.f;
-  pid_SW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SW.throttle + base_throttle) + 1000.f;
-  pid_NW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NW.throttle + base_throttle) + 1000.f;
+  pid_NE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NE.throttle + base_throttle + pid_height.throttle) + 1000.f;
+  pid_SE.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SE.throttle + base_throttle + pid_height.throttle) + 1000.f;
+  pid_SW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_SW.throttle + base_throttle + pid_height.throttle) + 1000.f;
+  pid_NW.output_throttle = CONTROLLER_LIMIT_THROTTLE(pid_NW.throttle + base_throttle + pid_height.throttle) + 1000.f;
 }
 
 void controller_update_orientation() {
