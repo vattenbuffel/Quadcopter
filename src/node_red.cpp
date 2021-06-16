@@ -176,7 +176,13 @@ void node_red_publish_controller_info() {
 }
 
 void node_red_publish_error(char* message){
+  printf("Going to publish error: %s, via NODE_RED\n", message);
+  if (!started){
+    printf("NODE_RED: can't publish error before starting\n");
+    return;
+  }
   node_red_publish(NODE_RED_ERROR_TOPIC_RECEIVE, message);
+  printf("Finished publish error via NODE_RED\n");
 }
 
 void node_red_start() {
@@ -186,7 +192,6 @@ void node_red_start() {
 
 // This task is run on core 1 so that all of the stuff is started runs on core 1
 void node_red_starter_task(void *) {
-  started = true;
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   printf("gonna connect to wifi %s with password %s\n", WIFI_SSID,
@@ -221,9 +226,10 @@ void node_red_starter_task(void *) {
   printf("\nConnected to broker\n");
   printf("Node red started\n");
 
-  node_red_publish("NW", "HELLO WORLD");
+  node_red_publish(NODE_RED_ERROR_TOPIC_RECEIVE, "HELLO WORLD");
   xTaskCreatePinnedToCore(node_red_task, "node-red-controller-publish-task",
                           configMINIMAL_STACK_SIZE * 10, NULL, 1, NULL, 1);
+  started = true;
 
   vTaskDelete(NULL);
 }

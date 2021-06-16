@@ -145,10 +145,18 @@ void controller_emergency_stop() {
     controller_stop();
     stopped = true;
     // printf("Stopped controller because X is out of bound.\n");
+    #ifdef CONFIG_NODE_RED_ENABLE
+      if (active)
+        node_red_publish_error("Stopped controller because X is out of bound.");
+    #endif //CONFIG_NODE_RED_ENABLE
   } else if (get_Y() < -CONTROLLER_MAX_Y || get_Y() > CONTROLLER_MAX_Y) {
     controller_stop();
     stopped = true;
     // printf("Stopped controller because Y is out of bound.\n");
+    #ifdef CONFIG_NODE_RED_ENABLE
+      if (active)
+        node_red_publish_error("Stopped controller because Y is out of bound.");
+    #endif //CONFIG_NODE_RED_ENABLE
   }
 
   // If the controller was active and emergency stopped publish the latest controller information. It's done on core 1 to prevent filter and controller from being stopped
@@ -162,6 +170,7 @@ void controller_publish_information(void*){
     printf("Emergency stop\n");
 
     #ifdef CONFIG_NODE_RED_ENABLE
+      node_red_publish_error("Controller emergency stop");
       node_red_publish_controller_info();
     #endif // CONFIG_NODE_RED_ENABLE
     vTaskDelete(NULL);
