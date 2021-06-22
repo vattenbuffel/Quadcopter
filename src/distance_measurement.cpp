@@ -21,7 +21,7 @@ Kalman kalman;
 // unsigned long distance_last_time_update;
 
 // float latest_height = CONTROLLER_HEIGHT_BASE_REF;
-xSemaphoreHandle latest_height_lock = NULL;
+// xSemaphoreHandle latest_height_lock = NULL;
 
 // Private functions
 void distance_measurement_send_new_data();
@@ -29,15 +29,11 @@ void distance_measurement_task(void *pvParameters);
 void distance_measurement_kalman_init();
 void distance_measurement_kalman_predict_step();
 void distance_measurement_kalman_update_step(float reading);
-void distance_measurement_kalman_print();
 
 
 
 // Functions implementations
 
-void distance_measurement_kalman_print(){
-  printf("Going to print height kalman struct.\n");
-}
 
 void distance_measurement_kalman_init(){
   kalman.A << 1 , 0,
@@ -58,7 +54,7 @@ void distance_measurement_kalman_init(){
 void distance_measurement_kalman_predict_step(){
   // Calculate the acceleration straight up
   // Fill in acceleration rotation matrix
-  kalman.acceleration_rotation_matrix(0,0) = -sin(get_Y());
+  kalman.acceleration_rotation_matrix(0,0) = -sin(get_Y())*cos(get_X());
   kalman.acceleration_rotation_matrix(0,1) = sin(get_X());
   kalman.acceleration_rotation_matrix(0,2) = cos(get_X())*cos(get_Y());
   BLA::Matrix<3> a_vector = {get_ddx(),
@@ -70,6 +66,7 @@ void distance_measurement_kalman_predict_step(){
   // float X = radToDeg(get_X());
   // float Y = radToDeg(get_Y());
   // Serial << "orientation: " << X << ", " << Y  << '\n';
+  // Serial << "accelerations: "  << a_vector  << '\n';
   // Serial << "kalman.acceleration_rotation_matrix: " << kalman.acceleration_rotation_matrix << '\n';
   // Serial << "a: " << a_temp << '\n';
 
@@ -83,8 +80,6 @@ void distance_measurement_kalman_predict_step(){
 
   kalman.P = kalman.A * kalman.P * ~kalman.A + kalman.Q;
 
-  // printf("\n"); 
-  // delay(100);
 }
 
 void distance_measurement_kalman_update_step(height_type reading){
@@ -92,7 +87,6 @@ void distance_measurement_kalman_update_step(height_type reading){
   BLA::Matrix<1,1> y = {reading};
   
   int res;
-
 
   auto S = kalman.C * kalman.P * ~kalman.C + kalman.R;
   auto S_inv = S.Inverse(&res);
@@ -107,17 +101,16 @@ void distance_measurement_kalman_update_step(height_type reading){
   auto K = kalman.P*~kalman.C*S_inv;
 
   
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
   kalman.x_hat_updated = kalman.x_hat_predicted + K*v;
-  xSemaphoreGive(latest_height_lock);
+  kalman.filtered_height = kalman.x_hat_updated(0);
   kalman.P -= K*S*~K;
 
-  // printf("Measured height: %f\n", reading);
-  // Serial << "Filtered state vector:" << kalman.x_hat_updated <<"\n";
+  printf("Measured height: %f\n", reading);
+  Serial << "Filtered state vector:" << kalman.x_hat_updated <<"\n";
   
   kalman.last_time_update_ms = millis();
-  // delay(100);  
-  // printf("\n");
+  delay(100);  
+  printf("\n");
 }
 
 
@@ -143,9 +136,7 @@ void distance_measurement_init(QueueHandle_t distance_queue_input) {
 
   distance_queue__ = distance_queue_input;
 
-  latest_height_lock = xSemaphoreCreateBinary();
-  xSemaphoreGive(latest_height_lock);
-
+  
   // Initialize the kalman filter
   distance_measurement_kalman_init();
 
@@ -157,23 +148,15 @@ void distance_measurement_init(QueueHandle_t distance_queue_input) {
 }
 
 float distance_measurement_get_estimated_height() {
-  if (latest_height_lock == NULL){
+  printf("Gonna return the filtered height: %f\n", kalman.filtered_height);
     return kalman.filtered_height;
-  }
-    
-  float temp_height;
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
-  temp_height = kalman.filtered_height;
-  xSemaphoreGive(latest_height_lock);
-  return temp_height;
+  
+  
 }
 
 float distance_measurement_get_predicted_height(){
-  float temp_height;
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
-  temp_height = (float)kalman.x_hat_predicted(0);
-  xSemaphoreGive(latest_height_lock);
-  return temp_height;
+  printf("kalman.x_hat_predicted(0) = %f\n", kalman.x_hat_predicted(0));
+  return  (float)kalman.x_hat_predicted(0);
   
 }
 
@@ -182,11 +165,9 @@ float distance_measurement_get_height(){
 }
 
 float distance_measurement_get_measured_height(){
-  float temp_height;
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
-  temp_height = kalman.measured_height;
-  xSemaphoreGive(latest_height_lock);
-  return temp_height;
+  
+    return kalman.measured_height;
+    
 }
 
 // This is the main distance_measurement task. It is responsible for adding the
@@ -241,7 +222,7 @@ void distance_measurement_task(void *pvParameters) {
     // Update kalman
     distance_measurement_kalman_update_step(height_m);
 
-    xQueueOverwrite(distance_queue__, &height_m);
+    xQueueOverwrite(distance_queue__, &kalman.filtered_height);
 
     vTaskDelay(1.0 / DISTANCE_MEASUREMENT_HZ * 1000 / portTICK_RATE_MS);
   }

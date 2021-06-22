@@ -2,7 +2,7 @@
 #define CONTROLLER_H_
 
 #include <Arduino.h>
-#include "min_max.h"
+#include "math_.h"
 
 #define NE_PIN 2
 #define SE_PIN 4
@@ -26,9 +26,6 @@
 #define CONTROLLER_MAX_X degToRad(40)
 #define CONTROLLER_MAX_Y degToRad(40)
 
-#define PI 3.14159265359
-#define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
-#define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 
 // These are parameters for the bluetooth controller
 #define CONTROLLER_ORIENTATION_CHANGE degToRad(1)
