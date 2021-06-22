@@ -1,7 +1,7 @@
 #ifndef NODE_RED_H_
 #define NODE_RED_H_
 
-#define NODE_RED_CONNECT_ATTEMPT_MAX 5
+#define NODE_RED_CONNECT_ATTEMPT_MAX 50
 #define NODE_RED_PUBLISH_HZ 100
 #define NODE_RED_ENABLE_TOPIC "enable-output"
 #define NODE_RED_SET_ORIENTATION_P_TOPIC "orientation-p"

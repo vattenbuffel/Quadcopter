@@ -196,6 +196,9 @@ void node_red_starter_task(void *) {
 
   printf("gonna connect to wifi %s with password %s\n", WIFI_SSID,
          WIFI_PASSWORD);
+  Serial.print("My mac adress is: ");
+  Serial.println(WiFi.macAddress());
+
   uint8_t connect_attemt_counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
     connect_attemt_counter += 1;

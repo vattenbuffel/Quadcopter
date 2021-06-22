@@ -26,8 +26,9 @@
 #define CONTROLLER_MAX_X degToRad(40)
 #define CONTROLLER_MAX_Y degToRad(40)
 
-#define degToRad(angleInDegrees) ((angleInDegrees)*M_PI / 180.0)
-#define radToDeg(angleInRadians) ((angleInRadians)*180.0 / M_PI)
+#define PI 3.14159265359
+#define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
+#define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 
 // These are parameters for the bluetooth controller
 #define CONTROLLER_ORIENTATION_CHANGE degToRad(1)

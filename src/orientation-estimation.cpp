@@ -21,6 +21,15 @@ void set_Z(float);
 void orientation_estimation_task(void *);
 
 // Function implementations
+float get_ddx(){
+  return ax;
+}
+float get_ddy(){
+  return ay;
+}
+float get_ddz(){
+  return az;
+}
 
 
 void start_orientation_estimation() {

@@ -68,8 +68,8 @@ void setup() {
   command_queue = xQueueCreate(10, sizeof(int));
   command_init(command_queue);
 
-  distance_queue = xQueueCreate(1, sizeof(height_type));
-  distance_measurement_init(distance_queue);
+  // distance_queue = xQueueCreate(1, sizeof(height_type));
+  // distance_measurement_init(distance_queue);
 
   // location_estimation_start();
 
@@ -98,6 +98,7 @@ void loop() {
 
   //   printf("NW throttle: %f\n", controller_get_NW().output_throttle);
   // }
+  // printf("height: %f\n", distance_measurement_get_height());
 }
 
 

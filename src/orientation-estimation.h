@@ -1,8 +1,6 @@
 #ifndef COMPLEMENTARY_FILTER_H_
 #define COMPLEMENTARY_FILTER_H_
-
-#define degToRad(angleInDegrees) ((angleInDegrees)*M_PI / 180.0)
-#define radToDeg(angleInRadians) ((angleInRadians)*180.0 / M_PI)
+    
 
 #define  AX_CORR -0.003
 #define  AY_CORR  0.023

@@ -3,6 +3,6 @@
 
 
 // This dictates if data should be published on node-red
-// #define CONFIG_NODE_RED_ENABLE
+#define CONFIG_NODE_RED_ENABLE
 
 #endif /*CONFIG_H*/
