@@ -15,7 +15,7 @@ typedef enum {
   POS_NW,
 } position;
 
-typedef struct PID_orientation_t {
+struct PID_orientation_t {
   uint8_t pin;
   float throttle, output_throttle;
   float Kp, Ki, Kd, IX, IY, IZ, e_prev_X, e_prev_Y, e_prev_Z;
@@ -25,7 +25,7 @@ typedef struct PID_orientation_t {
   position pos;
 };
 
-typedef struct PID_height_t {
+struct PID_height_t {
   float throttle;
   float Kp, Ki, I;
   float r; // in m

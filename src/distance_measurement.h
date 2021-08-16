@@ -2,7 +2,6 @@
 #define DISTANCE_MEASUREMENT_H_
 
 #include "FreeRTOS.h"
-#include <BasicLinearAlgebra.h>
 
 #define DISTANCE_MEASUREMENT_HZ 100
 #define DISTANCE_MEASUREMENT_OOR_VALUE 1.5
@@ -20,20 +19,16 @@
 
 typedef float height_type;
 
-using namespace BLA;
 struct Kalman{
-    BLA::Matrix<2,2> A;
-    BLA::Matrix<2,1> B;
-    BLA::Matrix<1,2> C;
-    BLA::Matrix<2,2> P;
-    BLA::Matrix<2,1> x_hat_predicted;
-    BLA::Matrix<2,1> x_hat_updated;
-    BLA::Matrix<2,2> Q;
+    float A;
+    float C;
+    float P;
+    float x_hat_predicted;
+    float x_hat_updated;
+    float Q;
     height_type measured_height;
     height_type filtered_height;
     float R;
-    BLA::Matrix<1,3> acceleration_rotation_matrix;
-    unsigned long last_time_update_ms;
     
 };
 

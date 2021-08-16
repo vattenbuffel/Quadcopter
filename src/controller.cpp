@@ -4,7 +4,7 @@
 #include "math.h"
 #include "node_red.h"
 #include <Servo.h>
-#include "min_max.h"
+#include "math_.h"
 #include "config.h"
 
 PID_orientation_t pid_NE, pid_SE, pid_SW, pid_NW;

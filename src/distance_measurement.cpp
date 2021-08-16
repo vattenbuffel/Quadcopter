@@ -8,7 +8,6 @@
 #include <math.h>
 #include "node_red.h"
 #include "config.h"
-#include <BasicLinearAlgebra.h>
 #include "math_.h"
 #include "config.h"
 
@@ -17,11 +16,6 @@ QueueHandle_t distance_queue__;
 VL53L0X distance_sensor;
 Kalman kalman;
 
-// xSemaphoreHandle wire_lock_distance;
-// unsigned long distance_last_time_update;
-
-// float latest_height = CONTROLLER_HEIGHT_BASE_REF;
-xSemaphoreHandle latest_height_lock = NULL;
 
 // Private functions
 void distance_measurement_send_new_data();
@@ -29,59 +23,29 @@ void distance_measurement_task(void *pvParameters);
 void distance_measurement_kalman_init();
 void distance_measurement_kalman_predict_step();
 void distance_measurement_kalman_update_step(float reading);
-void distance_measurement_kalman_print();
 
 
 
 // Functions implementations
 
-void distance_measurement_kalman_print(){
-  printf("Going to print height kalman struct.\n");
-}
 
 void distance_measurement_kalman_init(){
-  kalman.A << 1 , 0,
-              0, 1;
-  kalman.B  << 1,
-              0;
-  kalman.C  << 1, 0;
-  kalman.Q  << DISTANCE_MEASUREMENT_Q_H, 0,
-               0, DISTANCE_MEASUREMENT_Q_V;
+  kalman.A = 1;
+  kalman.C = 1;
+  kalman.Q  = DISTANCE_MEASUREMENT_Q_H;
   kalman.R   = DISTANCE_MEASUREMENT_R;
-  kalman.acceleration_rotation_matrix.Fill(0); // This has to be filled in later
-  kalman.x_hat_predicted.Fill(0);
-  kalman.x_hat_updated.Fill(0);
-  kalman.P.Fill(0); 
-  kalman.last_time_update_ms = millis();
+  kalman.x_hat_predicted = 0;
+  kalman.x_hat_updated = 0;
+  kalman.P = 0; 
 }
 
 void distance_measurement_kalman_predict_step(){
-  // Calculate the acceleration straight up
-  // Fill in acceleration rotation matrix
-  kalman.acceleration_rotation_matrix(0,0) = -sin(get_Y());
-  kalman.acceleration_rotation_matrix(0,1) = sin(get_X());
-  kalman.acceleration_rotation_matrix(0,2) = cos(get_X())*cos(get_Y());
-  BLA::Matrix<3> a_vector = {get_ddx(),
-                             get_ddy(),
-                             get_ddz()};
-  auto a_temp = (kalman.acceleration_rotation_matrix * a_vector) + G;
-  float a = a_temp(0);
-
-  // float X = radToDeg(get_X());
-  // float Y = radToDeg(get_Y());
-  // Serial << "orientation: " << X << ", " << Y  << '\n';
-  // Serial << "kalman.acceleration_rotation_matrix: " << kalman.acceleration_rotation_matrix << '\n';
-  // Serial << "a: " << a_temp << '\n';
-
   // calculate ts
-  float ts = MILLIES_TO_S(millis() - kalman.last_time_update_ms);
-  kalman.A(0,1) = ts;
-  kalman.B(1,0) = ts;
 
-  kalman.x_hat_predicted = kalman.A * kalman.x_hat_updated + kalman.B * a;
-  // Serial << "Predicted states: " << kalman.x_hat_predicted << "\n"; 
+  kalman.x_hat_predicted = kalman.A * kalman.x_hat_updated;
+  // printf("kalman predicted height: %f\n", kalman.x_hat_predicted);
 
-  kalman.P = kalman.A * kalman.P * ~kalman.A + kalman.Q;
+  kalman.P = kalman.A * kalman.P * kalman.A + kalman.Q;
 
   // printf("\n"); 
   // delay(100);
@@ -89,33 +53,18 @@ void distance_measurement_kalman_predict_step(){
 
 void distance_measurement_kalman_update_step(height_type reading){
   kalman.measured_height = reading;
-  BLA::Matrix<1,1> y = {reading};
   
-  int res;
+  float S = kalman.C * kalman.P * kalman.C + kalman.R;
+  float S_inv = 1/S;
+  float v = reading - kalman.C * kalman.x_hat_predicted;
+  float K = kalman.P*kalman.C*S_inv;
 
-
-  auto S = kalman.C * kalman.P * ~kalman.C + kalman.R;
-  auto S_inv = S.Inverse(&res);
-  if (res != 0){
-    printf("Error in distance measurement kalman filter. Couldn't invert S matrix.\n.");
-    Serial << "S: " << S <<"\n";
-    #ifdef CONFIG_NODE_RED_ENABLE
-      node_red_publish_error("Error in distance measurement kalman filter. Couldn't invert S matrix.");
-    #endif
-  }
-  auto v = y - kalman.C * kalman.x_hat_predicted;
-  auto K = kalman.P*~kalman.C*S_inv;
-
-  
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
   kalman.x_hat_updated = kalman.x_hat_predicted + K*v;
-  xSemaphoreGive(latest_height_lock);
-  kalman.P -= K*S*~K;
+  kalman.P -= K*S*K;
 
   // printf("Measured height: %f\n", reading);
-  // Serial << "Filtered state vector:" << kalman.x_hat_updated <<"\n";
+  // printf("kalman filtered height: %f\n", kalman.x_hat_updated);
   
-  kalman.last_time_update_ms = millis();
   // delay(100);  
   // printf("\n");
 }
@@ -143,8 +92,7 @@ void distance_measurement_init(QueueHandle_t distance_queue_input) {
 
   distance_queue__ = distance_queue_input;
 
-  latest_height_lock = xSemaphoreCreateBinary();
-  xSemaphoreGive(latest_height_lock);
+  
 
   // Initialize the kalman filter
   distance_measurement_kalman_init();
@@ -153,26 +101,22 @@ void distance_measurement_init(QueueHandle_t distance_queue_input) {
                           configMINIMAL_STACK_SIZE * 4, NULL, 1, NULL, 0);
   printf("Distance sensor started\n");
 
-  // distance_last_time_update = millis();
 }
 
 float distance_measurement_get_estimated_height() {
-  if (latest_height_lock == NULL){
-    return kalman.filtered_height;
-  }
     
   float temp_height;
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
+  
   temp_height = kalman.filtered_height;
-  xSemaphoreGive(latest_height_lock);
+  
   return temp_height;
 }
 
 float distance_measurement_get_predicted_height(){
   float temp_height;
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
-  temp_height = (float)kalman.x_hat_predicted(0);
-  xSemaphoreGive(latest_height_lock);
+  
+  temp_height = kalman.x_hat_predicted;
+  
   return temp_height;
   
 }
@@ -183,9 +127,9 @@ float distance_measurement_get_height(){
 
 float distance_measurement_get_measured_height(){
   float temp_height;
-  xSemaphoreTake(latest_height_lock, portMAX_DELAY);
+  
   temp_height = kalman.measured_height;
-  xSemaphoreGive(latest_height_lock);
+  
   return temp_height;
 }
 
@@ -240,8 +184,9 @@ void distance_measurement_task(void *pvParameters) {
     distance_measurement_kalman_predict_step();
     // Update kalman
     distance_measurement_kalman_update_step(height_m);
+    kalman.filtered_height = kalman.x_hat_updated;
 
-    xQueueOverwrite(distance_queue__, &height_m);
+    xQueueOverwrite(distance_queue__, &kalman.filtered_height);
 
     vTaskDelay(1.0 / DISTANCE_MEASUREMENT_HZ * 1000 / portTICK_RATE_MS);
   }

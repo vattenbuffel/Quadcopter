@@ -8,7 +8,6 @@
 
 MPU9250_asukiaaa mySensor;
 SF fusion;
-xSemaphoreHandle  XYZ_lock;
 float ax, ay, az, gx, gy, gz;
 
 float X = 0;
@@ -39,8 +38,7 @@ void start_orientation_estimation() {
   mySensor.beginMag();
 
 
-  XYZ_lock = xSemaphoreCreateBinary();
-  xSemaphoreGive(XYZ_lock);
+  
   xTaskCreatePinnedToCore(orientation_estimation_task, "Filter-task",
                           configMINIMAL_STACK_SIZE * 10, NULL, 5, NULL, 0);
   printf("Started complementary filter.\n");
@@ -94,11 +92,10 @@ bool update_orientation_estimation() {
     float pitch = fusion.getPitch();
     float yaw = fusion.getYaw();
 
-    xSemaphoreTake(XYZ_lock, portMAX_DELAY);
     X = degToRad(roll);
     Y = degToRad(-pitch);
     Z = degToRad(-yaw);
-    xSemaphoreGive(XYZ_lock);
+    
 
   return true;
 }
@@ -124,41 +121,35 @@ void orientation_estimation_task(void *) {
 }
 
 float get_X() {
-  xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   float tmp = X;
-  xSemaphoreGive(XYZ_lock);
+  
   return tmp;
 }
 
 float get_Y() {
-  xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   float tmp = Y;
-  xSemaphoreGive(XYZ_lock);
+  
   return tmp;
 }
 
 float get_Z() {
-  xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   float tmp = Z;
-  xSemaphoreGive(XYZ_lock);
+  
   return tmp;
 }
 
 void set_X(float tmp) {
-  xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   X = tmp;
-  xSemaphoreGive(XYZ_lock);
+  
 }
 
 void set_Y(float tmp) {
-  xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   Y = tmp;
-  xSemaphoreGive(XYZ_lock);
+  
 }
 
 void set_Z(float tmp) {
-  xSemaphoreTake(XYZ_lock, portMAX_DELAY);
   Z = tmp;
-  xSemaphoreGive(XYZ_lock);
+  
 }
 
