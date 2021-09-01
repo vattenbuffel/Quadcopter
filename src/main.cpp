@@ -11,6 +11,8 @@
 #include <Servo.h>
 #include <Wire.h>
 #include "config.h"
+#include <ArduinoJson.h>
+#include "bluetooth.h"
 
 QueueHandle_t distance_queue;
 QueueHandle_t command_queue;
@@ -63,21 +65,42 @@ void setup() {
   // SE.writeMicroseconds(1000);
   // NE.writeMicroseconds(1000);
 
-  start_orientation_estimation();
 
-  command_queue = xQueueCreate(10, sizeof(int));
-  command_init(command_queue);
+  //////////////////////////////////////////////////
+  //JSON test code
+  bluetooth_init();
 
-  distance_queue = xQueueCreate(1, sizeof(height_type));
-  distance_measurement_init(distance_queue);
 
-  // location_estimation_start();
+  const int json_capacity = JSON_OBJECT_SIZE(10);
+  printf("Json_capacity: %d\n", json_capacity);
+  StaticJsonDocument<json_capacity> doc;
+  DeserializationError err = deserializeJson(doc, "{\"shajse\":\"bajs\"}");
+  if (err){
+    Serial.print(F("Deserialization failed with code: "));
+    Serial.println(err.f_str());
+  }
 
-  controller_start(distance_queue, command_queue);
+  // Print received json
+  serializeJsonPretty(doc, Serial);
 
-#ifdef CONFIG_NODE_RED_ENABLE
-  node_red_start();
-#endif // CONFIG_NODE_RED_ENABLE
+
+  ///////////////////////////////////////////////////
+
+  // start_orientation_estimation();
+
+  // command_queue = xQueueCreate(10, sizeof(int));
+  // command_init(command_queue);
+
+  // distance_queue = xQueueCreate(1, sizeof(height_type));
+  // distance_measurement_init(distance_queue);
+
+  // // location_estimation_start();
+
+  // controller_start(distance_queue, command_queue);
+
+// #ifdef CONFIG_NODE_RED_ENABLE
+//   node_red_start();
+// #endif // CONFIG_NODE_RED_ENABLE
 }
 
 void loop() {
