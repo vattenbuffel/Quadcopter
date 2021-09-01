@@ -69,21 +69,6 @@ void setup() {
   //////////////////////////////////////////////////
   //JSON test code
   bluetooth_init();
-
-
-  const int json_capacity = JSON_OBJECT_SIZE(10);
-  printf("Json_capacity: %d\n", json_capacity);
-  StaticJsonDocument<json_capacity> doc;
-  DeserializationError err = deserializeJson(doc, "{\"shajse\":\"bajs\"}");
-  if (err){
-    Serial.print(F("Deserialization failed with code: "));
-    Serial.println(err.f_str());
-  }
-
-  // Print received json
-  serializeJsonPretty(doc, Serial);
-
-
   ///////////////////////////////////////////////////
 
   // start_orientation_estimation();
